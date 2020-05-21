@@ -1,0 +1,12 @@
+{
+  "AprsPort": 0,
+  "AprsUser": "",
+  "AprsPassword": "",
+  "AprsHost": "",
+  "AircraftListUrl": "",
+  "FilterPosition": {
+    "Latitude": 0,
+    "Longitude": 0 
+  },
+  "FilterRadius": 0
+}
