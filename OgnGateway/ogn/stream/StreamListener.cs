@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Reactive.Linq;
@@ -53,7 +54,10 @@ namespace OgnGateway.ogn.stream
                 throw new Exception("Filters not set properly!");
             }
 
-            var loginText = $"user {_config.AprsUser} pass {_config.AprsPassword} vers ogn_gateway 1.1 filter r/{_config.FilterPosition.Latitude}/{_config.FilterPosition.Longitude}/{_config.FilterRadius}";
+            var latitude = _config.FilterPosition.Latitude.ToString(CultureInfo.InvariantCulture);
+            var longitude = _config.FilterPosition.Longitude.ToString(CultureInfo.InvariantCulture);
+            var radius = _config.FilterRadius;
+            var loginText = $"user {_config.AprsUser} pass {_config.AprsPassword} vers ogn_gateway 1.1 filter r/{latitude}/{longitude}/{radius}";
 
             return Observable.Create(async (IObserver<string> observer) =>
             {
@@ -61,7 +65,7 @@ namespace OgnGateway.ogn.stream
                 await client.ConnectAsync(_config.AprsHost, _config.AprsPort);
 
                 var streamReader = new StreamReader(client.GetStream());
-                var streamWriter = new StreamWriter(client.GetStream());
+                var streamWriter = new StreamWriter(client.GetStream()) { AutoFlush = true };
 
                 // Login on the APRS server
                 await streamWriter.WriteLineAsync(loginText);

@@ -18,6 +18,11 @@
             color: blue;
             cursor: pointer;
         }
+        
+        .variable-value {
+            /* This values might change often, therefore align them right */
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -48,13 +53,17 @@
             <tbody>
             <template v-for="item in data">
                 <tr>
-                    <td>
-                        <span><b>{{item.aircraft.registration || 'unbekannt'}}<br>{{item.aircraft.type || ''}}</b></span>
+                    <td class="variable-value">
+                        <span><b>{{item.aircraft.registration || 'unbekannt'}}<br>{{
+                            item.aircraft.registration && item.aircraft.type
+                                ?  item.aircraft.type
+                                : ''
+                            }}</b></span>
                     </td>
-                    <td><span>{{item.altitude.toFixed(0)}}m</span></td>
-                    <td><span>{{item.speed.toFixed(0)}}km/h</span></td>
-                    <td><span>{{item.course.toFixed(0)}}°</span></td>
-                    <td>
+                    <td class="variable-value"><span>{{item.altitude.toFixed(0)}}m</span></td>
+                    <td class="variable-value"><span>{{item.speed.toFixed(0)}}km/h</span></td>
+                    <td class="variable-value"><span>{{item.course.toFixed(0)}}°</span></td>
+                    <td class="variable-value">
                         <span>
                             <a class="coordinate-link" v-on:click="updateFrame(item.position.latitude, item.position.longitude)">
                                 {{convertCoordinateToReadable(item.position.latitude, true)}}<br>
@@ -62,9 +71,16 @@
                             </a>
                         </span>
                     </td>
-                    <td><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
-                    <td><span>{{item.turnRate}}</span></td>
-                    <td><span>{{item.flying ? 'in der Luft' : 'am Boden'}}</span></td>
+                    <td class="variable-value"><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
+                    <td class="variable-value"><span>{{item.turnRate}}</span></td>
+                    <td><span>{{                        
+                        item.flying 
+                            ? item.turnRate >= 4 // approximated...
+                                ? 'in Thermik'
+                                : 'in der Luft'
+                            : 'am Boden'
+                        
+                        }}</span></td>
                 </tr>
             </template>
             </tbody>
@@ -194,7 +210,6 @@
 
                 connection.on("Data", (entry) => {
                     entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
-                    console.log(this, this.data);
                     let outdatedData = this.data || [];
                     let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.aircraftId === entry.aircraft.aircraftId);
                     
@@ -203,9 +218,9 @@
                         outdatedData.push(entry);
                     } else {
                         if (!outdatedData[outdatedIndex].flying && entry.flying) {
-                            sendNotification(`Gliderradar: Start`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist soeben gestartet.`);
+                            sendNotification(`Gliderradar: Start`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gestartet.`);
                         } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
-                            sendNotification(`Gliderradar: Landung`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist soeben gelandet.`);
+                            sendNotification(`Gliderradar: Landung`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gelandet.`);
                         }
 
                         outdatedData[outdatedIndex] = entry;
