@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OgnGateway", "OgnGateway\OgnGateway.csproj", "{41D8887E-E5A1-4338-8797-BC17284B5465}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsocketGateway", "WebsocketGateway\WebsocketGateway.csproj", "{05D417EC-F07C-41D2-9A6A-234EF9CD1025}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{41D8887E-E5A1-4338-8797-BC17284B5465}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41D8887E-E5A1-4338-8797-BC17284B5465}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41D8887E-E5A1-4338-8797-BC17284B5465}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05D417EC-F07C-41D2-9A6A-234EF9CD1025}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05D417EC-F07C-41D2-9A6A-234EF9CD1025}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05D417EC-F07C-41D2-9A6A-234EF9CD1025}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05D417EC-F07C-41D2-9A6A-234EF9CD1025}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
