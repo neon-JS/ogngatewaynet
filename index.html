@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Gliderradar LIVE &#x1F534</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        iframe {
+            width: 100%;
+            min-height: 50vh;
+            padding: 0;
+            margin: 5% 0 0;
+            border: none;
+        }
+        a.coordinate-link,
+        a.coordinate-link:not([href]):not([tabindex]) {
+            text-decoration: underline;
+            color: blue;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div id="list">
+    <nav class="navbar navbar-dark bg-dark">
+        <span class="navbar-brand mb-0 h1">&nbsp;</span>
+    </nav>
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+            <h1 class="display-4">Gliderradar LIVE &#x1F534 (EDLG)</h1>
+            <p class="lead">Aktuell aktive Flugzeuge (mit FLARM) in Kleve und Asperden</p>
+        </div>
+    </div>
+    <div class="container">
+        <table class="table table-striped table-bordered table-dresponsive">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">Kennung</th>
+                <th scope="col">Höhe</th>
+                <th scope="col">Geschwindigkeit</th>
+                <th scope="col">Kurs</th>
+                <th scope="col">Koordinaten</th>
+                <th scope="col">Steigen</th>
+                <th scope="col">Kreise/Minute</th>
+                <th scope="col">Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <template v-for="item in data">
+                <tr>
+                    <td>
+                        <span><b>{{item.aircraft.registration || 'unbekannt'}}<br>{{item.aircraft.type || ''}}</b></span>
+                    </td>
+                    <td><span>{{item.altitude.toFixed(0)}}m</span></td>
+                    <td><span>{{item.speed.toFixed(0)}}km/h</span></td>
+                    <td><span>{{item.course.toFixed(0)}}°</span></td>
+                    <td>
+                        <span>
+                            <a class="coordinate-link" v-on:click="updateFrame(item.position.latitude, item.position.longitude)">
+                                {{convertCoordinateToReadable(item.position.latitude, true)}}<br>
+                                {{convertCoordinateToReadable(item.position.longitude, false)}}
+                            </a>
+                        </span>
+                    </td>
+                    <td><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
+                    <td><span>{{item.turnRate}}</span></td>
+                    <td><span>{{item.flying ? 'in der Luft' : 'am Boden'}}</span></td>
+                </tr>
+            </template>
+            </tbody>
+        </table>
+    </div>
+    <br>
+    <div class="container">
+        <div class="d-flex flex-row bd-highlight mb-3 align-items-stretch">
+            <div class="card mr-2">
+                <div class="card-body">
+                    <h5 class="card-title">Open Glider Network</h5>
+                    <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie eine Entwickler-Doku.</p>
+                    <a href="http://wiki.glidernet.org/" class="btn btn-primary stretched-link" target="_blank">zum Open Glider Network</a>
+                </div>
+            </div>
+            <div class="card ml-2">
+                <div class="card-body">
+                    <h5 class="card-title">Live-Map</h5>
+                    <p class="card-text">Aktiviert eine eingebettete Live-Map (von <a href="https://live.glidernet.org">live.glidernet.org</a>)</p>
+                    <a href="javascript:toggleFrame()" class="btn btn-primary stretched-link">Live-Map</a>
+                </div>
+            </div>
+        </div>
+        <div id="frame-container"></div>
+    </div>
+</div>
+<footer class="page-footer font-small blue">
+    <div class="footer-copyright text-center py-3">
+        2019 - 2020, Niklas Schmidt
+        <br>
+        Source code on <a href="https://gitlab.com/neon-js/ognlistener">Gitlab</a>, licensed under the <a href="https://choosealicense.com/licenses/mit/">MIT License</a>
+        <br>
+        Thanks to the <a href="http://wiki.glidernet.org/">Open Glider Network</a> for your data and documentation!
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.3/signalr.min.js"></script>
+<script>
+    const MINIMAL_ALTITUDE = 15; // m
+    const MINIMAL_SPEED = 20; // km/h
+    const SOCKET_URL = "http://localhost:5000/websocket";
+    
+    // noinspection JSUnresolvedFunction
+    let app = new Vue({
+        el: '#list',
+        data() {
+            return {
+                data: []
+            }
+        },
+        mounted() {
+            // noinspection JSUndeclaredVariable
+            /**
+             * Converts given coordinate (given as number) to a readable format
+             */
+            convertCoordinateToReadable = (coordinate, isLatitude) => {
+                let degrees = Math.floor(coordinate);
+                const minutes = Math.floor(coordinate * 100 % 100 * 0.6);
+                const seconds = Math.floor(coordinate * 10000 % 100 * 0.6);
+
+                let direction;
+                if (isLatitude) {
+                    if (degrees > 0) {
+                        direction = 'N';
+                    } else {
+                        direction = 'S';
+                        degrees *= -1;
+                    }
+                    degrees = degrees.toString().padStart(2, '0');
+                } else {
+                    if (degrees > 0) {
+                        direction = 'E';
+                    } else {
+                        direction = 'W';
+                        degrees *= -1;
+                    }
+                    degrees = degrees.toString().padStart(3, '0');
+                }
+
+                return `${degrees}° ${minutes.toString().padStart(2, '0')}' ${seconds.toString().padStart(2, '0')}" ${direction}`;
+            };
+
+            // noinspection JSUndeclaredVariable
+            /**
+             * Updates the iframes coordinates to the given ones.
+             * @param latitude
+             * @param longitude
+             */
+            updateFrame = (latitude, longitude) => {
+                const frame = document.querySelector('#frame-container > iframe');
+                if (frame === null) {
+                    console.warn("Trying to update frame that could not be found.");
+                    toggleFrame();
+                }
+
+                // HACKY workaround, the frame won't reload if only the anchor changes, so blank out the page and reassign it to force reload
+                frame.src = "about:blank";
+                setTimeout(() => frame.src = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1`, 10);
+            }
+
+            // noinspection JSUndeclaredVariable
+            /**
+             * Tries to connect to the signalR socket that provides all the data
+             * @returns {Promise<void>}
+             */
+            connect = async () => {
+                // noinspection JSUnresolvedVariable,JSUnresolvedFunction
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl(SOCKET_URL)
+                    .configureLogging(signalR.LogLevel.Information)
+                    .build();
+
+                function start() {
+                    return new Promise((resolve) => {
+                        connection.start()
+                            .then((connection) => {
+                                console.log("Connected to SignalR socket");
+                                resolve(connection);
+                            })
+                            .catch((error) => {
+                                console.log("Could not connect to SignalR socket. Retry after 5 seconds...", error);
+                                setTimeout(() => start().then(resolve), 5000)
+                            })
+                    });
+                }
+
+                connection.on("Data", (entry) => {
+                    entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
+                    console.log(this, this.data);
+                    let outdatedData = this.data || [];
+                    let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.aircraftId === entry.aircraft.aircraftId);
+                    
+                    if (outdatedIndex === -1) {
+                        sendNotification(`Gliderradar: Neues Flugzeug`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist aufgetaucht.`);
+                        outdatedData.push(entry);
+                    } else {
+                        if (!outdatedData[outdatedIndex].flying && entry.flying) {
+                            sendNotification(`Gliderradar: Start`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist soeben gestartet.`);
+                        } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
+                            sendNotification(`Gliderradar: Landung`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist soeben gelandet.`);
+                        }
+
+                        outdatedData[outdatedIndex] = entry;
+                    }
+
+                    this.data = outdatedData
+                        .sort((entry1, entry2) => {
+                            const sign1 = (entry1.aircraft.registration || '').toString().toLowerCase();
+                            const sign2 = (entry2.aircraft.registration || '').toString().toLowerCase();
+
+                            if (sign1 < sign2) return -1;
+                            if (sign2 < sign1) return 1;
+                            return 0;
+                        })
+                        .sort((entry1, entry2) => {
+                            if (entry1.flying && !entry2.flying) return -1;
+                            if (!entry1.flying && entry2.flying) return 1;
+                            return 0;
+                        });
+                });
+
+                connection.onclose(async () => await start());
+
+                await start()
+                    .catch(err => console.error("Error during connection!", err));
+            }
+        }
+    });
+    
+    function checkPermission() {
+        return new Promise((resolve, reject) => {
+            if (!('Notification' in window)) {
+                reject();
+            }
+
+            if (Notification.permission === 'granted') {
+                resolve();
+            }
+
+            // noinspection JSIgnoredPromiseFromCall
+            Notification.requestPermission(permission => {
+                if (permission === 'granted') {
+                    resolve();
+                }
+
+                reject();
+            });
+        })
+    }
+
+    function sendNotification(title, message, icon) {
+        checkPermission()
+            .then(() => {
+                return new Notification(title, {body: message, icon});
+            })
+            .catch(() => {
+                alert('Benachrichtigungen können nicht versendet werden. Bitte überprüfe die Berechtigungen.');
+            });
+    }
+    
+    function toggleFrame() {
+        const hasFrame = document.querySelector('#frame-container > iframe') !== null;
+        if (hasFrame) {
+            const container = document.querySelector('#frame-container');
+            container.removeChild(container.querySelector('iframe'));
+        } else {
+            const container = document.querySelector('#frame-container');
+            const newChild = document.createElement('iframe');
+            newChild.setAttribute('name', 'frame');
+            newChild.setAttribute('src', 'https://live.glidernet.org/#c=51.74896,6.15643&z=12&s=1');
+            newChild.setAttribute('allowfullscreen', '1');
+            container.appendChild(newChild);
+        }
+    }
+    
+    checkPermission()
+        .then(connect)
+        .catch(connect);
+</script>
+</body>
+</html>
