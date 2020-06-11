@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using OgnGateway.ogn.aircraft;
 using OgnGateway.ogn.config;
 using OgnGateway.ogn.stream;
+using WebsocketGateway.Config;
 using WebsocketGateway.Hubs;
 using WebsocketGateway.Services;
 
@@ -36,6 +37,8 @@ namespace WebsocketGateway
                 return provider;
             });
             
+            services.Configure<ListenerConfiguration>(Configuration.GetSection("GatewayOptions"));
+            
             services.AddCors(options => options.AddPolicy("CorsPolicyDev", 
                 builder => 
                 {
@@ -46,7 +49,15 @@ namespace WebsocketGateway
                 }));
             
             services.AddSignalR();
-            services.AddHostedService<PublishService>();
+            
+            if (Configuration.GetSection("GatewayOptions").GetValue<bool>("EventsOnly"))
+            {
+                services.AddHostedService<EventOnlyPublishService>();
+            }
+            else
+            {
+                services.AddHostedService<PublishService>();
+            }
         }
 
         // ReSharper disable once UnusedMember.Global
