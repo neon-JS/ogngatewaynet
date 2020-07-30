@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Gliderradar LIVE &#x1F534</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <style>
         iframe {
             width: 100%;
@@ -12,13 +13,14 @@
             margin: 5% 0 0;
             border: none;
         }
+
         a.coordinate-link,
         a.coordinate-link:not([href]):not([tabindex]) {
             text-decoration: underline;
             color: blue;
             cursor: pointer;
         }
-        
+
         .variable-value {
             /* This values might change often, therefore align them right */
             text-align: right;
@@ -65,7 +67,8 @@
                     <td class="variable-value"><span>{{item.course.toFixed(0)}}°</span></td>
                     <td class="variable-value">
                         <span>
-                            <a class="coordinate-link" v-on:click="updateFrame(item.position.latitude, item.position.longitude)">
+                            <a class="coordinate-link"
+                               v-on:click="updateFrame(item.position.latitude, item.position.longitude)">
                                 {{convertCoordinateToReadable(item.position.latitude, true)}}<br>
                                 {{convertCoordinateToReadable(item.position.longitude, false)}}
                             </a>
@@ -91,15 +94,26 @@
         <div class="d-flex flex-row bd-highlight mb-3 align-items-stretch">
             <div class="card mr-2">
                 <div class="card-body">
+                    <h5 class="card-title">Notifications aktiveren!</h5>
+                    <p class="card-text"><br></p>
+                    <a href="javascript:checkNotificationPermissions()" class="btn btn-primary stretched-link">Hier
+                        klicken, um Notifications zu erhalten!</a>
+                </div>
+            </div>
+            <div class="card mr-2">
+                <div class="card-body">
                     <h5 class="card-title">Open Glider Network</h5>
-                    <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie eine Entwickler-Doku.</p>
-                    <a href="http://wiki.glidernet.org/" class="btn btn-primary stretched-link" target="_blank">zum Open Glider Network</a>
+                    <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie eine
+                        Entwickler-Doku.</p>
+                    <a href="http://wiki.glidernet.org/" class="btn btn-primary stretched-link" target="_blank">zum Open
+                        Glider Network</a>
                 </div>
             </div>
             <div class="card ml-2">
                 <div class="card-body">
                     <h5 class="card-title">Live-Map</h5>
-                    <p class="card-text">Aktiviert eine eingebettete Live-Map (von <a href="https://live.glidernet.org">live.glidernet.org</a>)</p>
+                    <p class="card-text">Aktiviert eine eingebettete Live-Map (von <a href="https://live.glidernet.org">live.glidernet.org</a>)
+                    </p>
                     <a href="javascript:toggleFrame()" class="btn btn-primary stretched-link">Live-Map</a>
                 </div>
             </div>
@@ -111,7 +125,8 @@
     <div class="footer-copyright text-center py-3">
         2019 - 2020, Niklas Schmidt
         <br>
-        Source code on <a href="https://gitlab.com/neon-js/ognlistener">Gitlab</a>, licensed under the <a href="https://choosealicense.com/licenses/mit/">MIT License</a>
+        Source code on <a href="https://gitlab.com/neon-js/ognlistener">Gitlab</a>, licensed under the <a
+            href="https://choosealicense.com/licenses/mit/">MIT License</a>
         <br>
         Thanks to the <a href="http://wiki.glidernet.org/">Open Glider Network</a> for your data and documentation!
     </div>
@@ -123,7 +138,9 @@
     const MINIMAL_ALTITUDE = 15; // m
     const MINIMAL_SPEED = 20; // km/h
     const SOCKET_URL = "http://localhost:5000/websocket";
-    
+    let askedNotificationPermission = false;
+    let hasNotificationPermission = false;
+
     // noinspection JSUnresolvedFunction
     let app = new Vue({
         el: '#list',
@@ -183,6 +200,48 @@
             }
 
             // noinspection JSUndeclaredVariable
+            handleMessage = (message) => {
+                if (Array.isArray(message)) {
+                    message.forEach(e => handleMessage(e));
+                    return;
+                }
+
+                let entry = message;
+
+                entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
+                let outdatedData = this.data || [];
+                let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.aircraftId === entry.aircraft.aircraftId);
+
+                if (outdatedIndex === -1) {
+                    sendNotification(`Gliderradar: Neues Flugzeug`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist aufgetaucht.`);
+                    outdatedData.push(entry);
+                } else {
+                    if (!outdatedData[outdatedIndex].flying && entry.flying) {
+                        sendNotification(`Gliderradar: Start`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gestartet.`);
+                    } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
+                        sendNotification(`Gliderradar: Landung`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gelandet.`);
+                    }
+
+                    outdatedData[outdatedIndex] = entry;
+                }
+
+                this.data = outdatedData
+                    .sort((entry1, entry2) => {
+                        const sign1 = (entry1.aircraft.registration || '').toString().toLowerCase();
+                        const sign2 = (entry2.aircraft.registration || '').toString().toLowerCase();
+
+                        if (sign1 < sign2) return -1;
+                        if (sign2 < sign1) return 1;
+                        return 0;
+                    })
+                    .sort((entry1, entry2) => {
+                        if (entry1.flying && !entry2.flying) return -1;
+                        if (!entry1.flying && entry2.flying) return 1;
+                        return 0;
+                    });
+            }
+
+            // noinspection JSUndeclaredVariable
             /**
              * Tries to connect to the signalR socket that provides all the data
              * @returns {Promise<void>}
@@ -208,79 +267,23 @@
                     });
                 }
 
-                connection.on("Data", (entry) => {
-                    entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
-                    let outdatedData = this.data || [];
-                    let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.aircraftId === entry.aircraft.aircraftId);
-                    
-                    if (outdatedIndex === -1) {
-                        sendNotification(`Gliderradar: Neues Flugzeug`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist aufgetaucht.`);
-                        outdatedData.push(entry);
-                    } else {
-                        if (!outdatedData[outdatedIndex].flying && entry.flying) {
-                            sendNotification(`Gliderradar: Start`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gestartet.`);
-                        } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
-                            sendNotification(`Gliderradar: Landung`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gelandet.`);
-                        }
-
-                        outdatedData[outdatedIndex] = entry;
-                    }
-
-                    this.data = outdatedData
-                        .sort((entry1, entry2) => {
-                            const sign1 = (entry1.aircraft.registration || '').toString().toLowerCase();
-                            const sign2 = (entry2.aircraft.registration || '').toString().toLowerCase();
-
-                            if (sign1 < sign2) return -1;
-                            if (sign2 < sign1) return 1;
-                            return 0;
-                        })
-                        .sort((entry1, entry2) => {
-                            if (entry1.flying && !entry2.flying) return -1;
-                            if (!entry1.flying && entry2.flying) return 1;
-                            return 0;
-                        });
-                });
+                connection.on("Data", (message) => handleMessage(message));
 
                 connection.onclose(async () => await start());
 
                 await start()
+                    .then(_ => connection.send("InitialRequest"))
                     .catch(err => console.error("Error during connection!", err));
             }
         }
     });
-    
-    function checkPermission() {
-        return new Promise((resolve, reject) => {
-            if (!('Notification' in window)) {
-                reject();
-            }
-
-            if (Notification.permission === 'granted') {
-                resolve();
-            }
-
-            // noinspection JSIgnoredPromiseFromCall
-            Notification.requestPermission(permission => {
-                if (permission === 'granted') {
-                    resolve();
-                }
-
-                reject();
-            });
-        })
-    }
 
     function sendNotification(title, message, icon) {
-        checkPermission()
-            .then(() => {
-                return new Notification(title, {body: message, icon});
-            })
-            .catch(() => {
-                alert('Benachrichtigungen können nicht versendet werden. Bitte überprüfe die Berechtigungen.');
-            });
+        if (hasNotificationPermission) {
+            return new Notification(title, {body: message, icon})
+        }
     }
-    
+
     function toggleFrame() {
         const hasFrame = document.querySelector('#frame-container > iframe') !== null;
         if (hasFrame) {
@@ -295,10 +298,24 @@
             container.appendChild(newChild);
         }
     }
-    
-    checkPermission()
-        .then(connect)
-        .catch(connect);
+
+    function checkNotificationPermissions() {
+        if (askedNotificationPermission) {
+            return;
+        }
+        askedNotificationPermission = true;
+
+        if (!('Notification' in window)) {
+            hasNotificationPermission = false;
+        } else if (Notification.permission === 'granted') {
+            hasNotificationPermission = true;
+        } else {
+            // noinspection JSIgnoredPromiseFromCall
+            Notification.requestPermission(permission => hasNotificationPermission = permission === 'granted');
+        }
+    }
+
+    connect();
 </script>
 </body>
 </html>

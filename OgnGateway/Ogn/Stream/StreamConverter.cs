@@ -1,9 +1,9 @@
 using System;
 using System.Text.RegularExpressions;
-using OgnGateway.extensions;
-using OgnGateway.ogn.models;
+using OgnGateway.Extensions;
+using OgnGateway.Ogn.Models;
 
-namespace OgnGateway.ogn.stream
+namespace OgnGateway.Ogn.Stream
 {
     /// <summary>
     /// Converter for getting models from stream data
@@ -13,29 +13,30 @@ namespace OgnGateway.ogn.stream
         /// <summary>
         /// Main pattern for getting all needed information from a raw stream-line
         /// </summary>
-        private const string LineMatchPattern = @".*?h([0-9.]*[NS])[/\\]([0-9.]*[WE]).*?(\d{3})/(\d{3})/A=(\d+).*?id.{2}([A-Za-z0-9]+).*?([-0-9]+)fpm.*?([-.0-9]+)rot.*";
-       
+        private const string LineMatchPattern =
+            @".*?h([0-9.]*[NS])[/\\]([0-9.]*[WE]).*?(\d{3})/(\d{3})/A=(\d+).*?id.{2}([A-Za-z0-9]+).*?([-0-9]+)fpm.*?([-.0-9]+)rot.*";
+
         /// <summary>
         /// Pattern for converting coordinate strings to valid numeric string
         /// (aka "remove all non-numeric chars")
         /// </summary>
         private const string CoordinateReplacePattern = @"[^\d]";
-        
+
         /// <summary>
         /// Factor to convert knots to km/h
         /// </summary>
         private const float FactorKnotsToKmH = 1.852f;
-        
+
         /// <summary>
         /// Factor to convert ft to m
         /// </summary>
         private const float FactorFtToM = 0.3048f;
-        
+
         /// <summary>
         /// Factor to convert ft/min to m/s 
         /// </summary>
         private const float FactorFtMinToMSec = 0.00508f;
-        
+
         /// <summary>
         /// Factor to convert "turns/2min" to "turns/min"
         /// </summary>
@@ -66,8 +67,17 @@ namespace OgnGateway.ogn.stream
             var aircraftId = data[6].Value;
             var verticalSpeed = Convert(data, 7, FactorFtMinToMSec);
             var turnRate = Math.Abs(Convert(data, 8, FactorTurnsTwoMinToTurnsMin));
-            
-            return new FlightData(aircraftId, speed, altitude, verticalSpeed, turnRate, course, latitude, longitude, DateTime.Now);
+
+            return new FlightData(
+                aircraftId,
+                speed, altitude,
+                verticalSpeed,
+                turnRate,
+                course,
+                latitude,
+                longitude,
+                DateTime.Now
+            );
         }
 
         /// <summary>
@@ -79,7 +89,9 @@ namespace OgnGateway.ogn.stream
         /// <returns></returns>
         private static float Convert(GroupCollection collection, int index, float factor = 1)
         {
-            return (float)System.Convert.ToDouble(collection[index].Value) * factor;
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
+
+            return (float) System.Convert.ToDouble(collection[index].Value) * factor;
         }
 
         /// <summary>
@@ -90,22 +102,24 @@ namespace OgnGateway.ogn.stream
         /// <returns></returns>
         private static float ConvertCoordinateValue(GroupCollection collection, int index)
         {
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
+
             /* Latitude and longitude (by APRS-standard) are given as following: ddmm.mmD where d = "degree", m = "minute" and D = "direction".
              * Notice that minutes are decimals, so 0.5 minutes equal 0 minutes, 30 secs.
              * We'll separate degrees and minutes, so we can convert it to a "degree"-only value.
              */
             var rawValue = collection[index].Value;
-            
+
             var numericValue = System.Convert.ToDouble(Regex.Replace(rawValue, CoordinateReplacePattern, ""));
             var orientation = rawValue[^1..];
 
             var degrees = Math.Floor(numericValue / 1_0000); // Separating   "dd" from "ddmmmm"
-            var minutes = Math.Floor(numericValue % 1_0000)  // Separating "mmmm" from "ddmmmm"
-                          / 60   // because 60 minutes = 1 degree
+            var minutes = Math.Floor(numericValue % 1_0000) // Separating "mmmm" from "ddmmmm"
+                          / 60 // because 60 minutes = 1 degree
                           / 100; // because of the removed decimal separator
-            
-            var coordinateValue = (float)(degrees + minutes);
-            
+
+            var coordinateValue = (float) (degrees + minutes);
+
             if (orientation.Equals("S") || orientation.Equals("W"))
             {
                 // S/W are seen as negative!

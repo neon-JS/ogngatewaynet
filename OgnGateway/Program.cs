@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using OgnGateway.ogn.aircraft;
-using OgnGateway.ogn.config;
-using OgnGateway.ogn.stream;
+using OgnGateway.Ogn.Config;
+using OgnGateway.Ogn.Providers;
+using OgnGateway.Ogn.Stream;
 
 namespace OgnGateway
 {
     class Program
     {
+        // ReSharper disable once UnusedParameter.Local
         static void Main(string[] args)
         {
             Run().Wait();
@@ -16,7 +17,7 @@ namespace OgnGateway
 
         private static async Task Run()
         {
-            var configLoader = new ConfigLoader();
+            var configLoader = new AprsConfigLoader();
             var config = await configLoader.LoadAsync();
             
             var streamListener = new StreamListener(config);
@@ -39,7 +40,7 @@ namespace OgnGateway
                     }
                 });
 
-            await streamListener.Stream; //Task.Delay(10_000);
+            await streamListener.Stream;
         }
     }
 }

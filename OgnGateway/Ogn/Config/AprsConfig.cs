@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using OgnGateway.ogn.models;
+using OgnGateway.Ogn.Models;
 
-namespace OgnGateway.ogn.config
+namespace OgnGateway.Ogn.Config
 {
     /// <summary>
     /// Representation of current configuration.
@@ -9,38 +9,38 @@ namespace OgnGateway.ogn.config
     /// </summary>
     [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class Config
+    public class AprsConfig
     {
         /// <summary>
         /// APRS host that the listener should connect to
         /// </summary>
         public string AprsHost { get; set; } = "";
-        
+
         /// <summary>
         /// APRS port that the listener should connect to
         /// </summary>
         public int AprsPort { get; set; } = 0;
-        
+
         /// <summary>
         /// Username that will be used while authenticating to the APRS server
         /// </summary>
         public string AprsUser { get; set; } = "";
-        
+
         /// <summary>
         /// Password that will be used while authenticating to the APRS server
         /// </summary>
         public string AprsPassword { get; set; } = "";
-        
+
         /// <summary>
-        /// Url that contains the list of all OGN-known aircrafts
+        /// Url that contains the list of all OGN-known aircraft
         /// </summary>
-        public string AircraftListUrl { get; set; }= "";
-        
+        public string AircraftListUrl { get; set; } = "";
+
         /// <summary>
         /// Position that should be listened for
         /// </summary>
         public Position FilterPosition { get; set; } = new Position();
-        
+
         /// <summary>
         /// Radius around the FilterPosition that should be listened for in km.
         /// </summary>

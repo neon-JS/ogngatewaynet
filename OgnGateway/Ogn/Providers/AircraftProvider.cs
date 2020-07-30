@@ -3,35 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using OgnGateway.extensions;
-using OgnGateway.ogn.config;
-using OgnGateway.ogn.models;
+using OgnGateway.Extensions;
+using OgnGateway.Ogn.Config;
+using OgnGateway.Ogn.Models;
 
-namespace OgnGateway.ogn.aircraft
+namespace OgnGateway.Ogn.Providers
 {
     /// <summary>
-    /// Provider for all OGN aircrafts
+    /// Provider for all OGN aircraft
     /// </summary>
     public class AircraftProvider
     {
         /// <summary>
         /// Current configuration as it contains the url that should be called
         /// </summary>
-        private readonly Config _config;
-        
+        private readonly AprsConfig _aprsConfig;
+
         /// <summary>
-        /// Cached list containing all parsed aircrafts
+        /// Cached list containing all parsed aircraft
         /// </summary>
         private Dictionary<string, Aircraft>? _aircraftList;
 
-        public AircraftProvider(Config config)
+        public AircraftProvider(AprsConfig aprsConfig)
         {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _aprsConfig = aprsConfig ?? throw new ArgumentNullException(nameof(aprsConfig));
         }
 
         /// <summary>
         /// Initializes the provider and downloads / parses the data.
-        /// _Must_ be called before trying to Load any aircrafts
+        /// _Must_ be called before trying to Load any aircraft
         /// </summary>
         /// <returns>Task indicating whether initialization is done</returns>
         public async Task Initialize()
@@ -48,34 +48,27 @@ namespace OgnGateway.ogn.aircraft
         /// <exception cref="Exception">When Provider has not been initialized</exception>
         public Aircraft Load(string aircraftId)
         {
+            aircraftId.EnsureNotEmpty();
+
             if (_aircraftList == null)
             {
                 throw new Exception("Provider has not been initialized!");
             }
-            
-            try
-            {
-                return _aircraftList[aircraftId];
-            }
-            catch (KeyNotFoundException)
-            {
-                // It's not uncommon to find aircrafts that are not in the OGN database.
-                // In this case just return an empty one!
-                return new Aircraft(aircraftId);
-            }
+
+            return _aircraftList.ContainsKey(aircraftId) ? _aircraftList[aircraftId] : new Aircraft(aircraftId);
         }
 
         /// <summary>
-        /// Loads and parses all aircrafts from OGN into a list
+        /// Loads and parses all aircraft from OGN into a list
         /// </summary>
-        /// <returns>List of all Aircrafts known to OGN</returns>
+        /// <returns>List of all aircraft known to OGN</returns>
         /// <exception cref="Exception">On invalid config or HTTP-errors</exception>
         private async Task<Dictionary<string, Aircraft>> FetchAircraftList()
         {
-            _config.AircraftListUrl.EnsureNotEmpty();
+            _aprsConfig.AircraftListUrl.EnsureNotEmpty();
 
             var client = new HttpClient();
-            var response = await client.GetAsync(_config.AircraftListUrl);
+            var response = await client.GetAsync(_aprsConfig.AircraftListUrl);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -83,7 +76,7 @@ namespace OgnGateway.ogn.aircraft
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            
+
             var aircraftList = new Dictionary<string, Aircraft>();
 
             var insertResult = content
@@ -100,7 +93,7 @@ namespace OgnGateway.ogn.aircraft
             {
                 throw new Exception("Error during insertion of aircraft.");
             }
-            
+
             return aircraftList;
         }
     }
