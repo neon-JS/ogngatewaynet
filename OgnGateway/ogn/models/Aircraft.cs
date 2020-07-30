@@ -8,7 +8,7 @@ namespace OgnGateway.ogn.models
         /// <summary>
         /// OGN-ID of the aircraft
         /// </summary>
-        public string AircraftId { get; }
+        public string Id { get; }
         
         /// <summary>
         /// CallSign of the aircraft (e.g. "G1")
@@ -27,7 +27,7 @@ namespace OgnGateway.ogn.models
 
         public Aircraft(string aircraftId, string? callSign = null, string? registration = null, string? type = null)
         {
-            AircraftId = aircraftId;
+            Id = aircraftId;
             CallSign = callSign;
             Registration = registration;
             Type = type;
@@ -35,7 +35,7 @@ namespace OgnGateway.ogn.models
 
         public override string ToString()
         {
-            return $"\n\t\t[Aircraft]\n\t\tID: {AircraftId}\n\t\tcall-sign: {CallSign}\n\t\tregistration: {Registration}\n\t\ttype: {Type}";
+            return $"\n\t\t[Aircraft]\n\t\tID: {Id}\n\t\tcall-sign: {CallSign}\n\t\tregistration: {Registration}\n\t\ttype: {Type}";
         }
     }
 }

@@ -94,7 +94,7 @@ namespace OgnGateway.ogn.aircraft
                 .Select(line => line.Split(','))
                 .Where(values => values.Length >= 5)
                 .Select(values => new Aircraft(values[1], values[4], values[3], values[2]))
-                .All(aircraft => aircraftList.TryAdd(aircraft.AircraftId, aircraft));
+                .All(aircraft => aircraftList.TryAdd(aircraft.Id, aircraft));
 
             if (!insertResult)
             {

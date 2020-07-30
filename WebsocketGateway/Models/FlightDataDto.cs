@@ -9,7 +9,7 @@ namespace WebsocketGateway.Models
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    public class WebsocketEntry
+    public class FlightDataDto
     {
         /// <summary>
         /// Current speed of the aircraft in km/h
@@ -51,7 +51,7 @@ namespace WebsocketGateway.Models
         /// </summary>
         public Aircraft Aircraft { get; }
 
-        public WebsocketEntry(FlightData flightData, Aircraft aircraft)
+        public FlightDataDto(FlightData flightData, Aircraft aircraft)
         {
             Speed = flightData.Speed;
             Altitude = flightData.Altitude;

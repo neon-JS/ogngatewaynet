@@ -1,14 +1,9 @@
 using System;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
-using OgnGateway.ogn.aircraft;
-using OgnGateway.ogn.models;
-using OgnGateway.ogn.stream;
 using WebsocketGateway.Hubs;
-using WebsocketGateway.Models;
 
 namespace WebsocketGateway.Services
 {
@@ -26,18 +21,9 @@ namespace WebsocketGateway.Services
         /// HubContext that provides us the data needed for publishing messages
         /// </summary>
         private readonly IHubContext<DefaultWebsocketHub> _hubContext;
-        
-        /// <summary>
-        /// Listener that returns raw messages to convert
-        /// </summary>
-        private readonly StreamListener _ognStreamListener;
-        
-        /// <summary>
-        /// Aircraft provider that we can use to fetch data from.
-        /// Note that this provider has been initialized by the dependency injection.
-        /// </summary>
-        private readonly AircraftProvider _aircraftProvider;
-        
+
+        private readonly DataService _dataService;
+
         /// <summary>
         /// Disposable representation of the observable that is needed when stopping the Service.
         /// </summary>
@@ -45,13 +31,11 @@ namespace WebsocketGateway.Services
 
         public PublishService(
             IHubContext<DefaultWebsocketHub> hubContext, 
-            StreamListener streamListener, 
-            AircraftProvider aircraftProvider
+            DataService dataService
             )
         {
             _hubContext = hubContext;
-            _ognStreamListener = streamListener;
-            _aircraftProvider = aircraftProvider;
+            _dataService = dataService;
         }
         
         /// <summary>
@@ -62,8 +46,7 @@ namespace WebsocketGateway.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             // Save stream to cancel it properly on StopAsync.
-            _stream = GetEventStream(_ognStreamListener.Stream)
-                .Select(data => new WebsocketEntry(data, _aircraftProvider.Load(data.AircraftId)))
+            _stream = _dataService.Stream
                 .Subscribe(async entry => await _hubContext.Clients.All.SendAsync(DataMethod, entry, cancellationToken));
             
             return Task.CompletedTask;
@@ -80,20 +63,6 @@ namespace WebsocketGateway.Services
             _stream?.Dispose();
             
             return Task.CompletedTask;
-        }
-        
-        /// <summary>
-        /// Creates and returns an Observable that publishes all FlightData-entries that should be published.
-        /// May be overridden to allow filtering, buffering etc.
-        /// </summary>
-        /// <param name="ognListenerStream">The raw OGN-Observable returning the received data-lines</param>
-        /// <returns>Observable publishing all data that should be published</returns>
-        protected virtual IObservable<FlightData> GetEventStream(IObservable<string> ognListenerStream)
-        {
-            // Default behaviour: Convert and publish all messages directly
-            return ognListenerStream
-                .Select(StreamConverter.ConvertData)
-                .OfType<FlightData>(); // Remove nulls
         }
     }
 }
