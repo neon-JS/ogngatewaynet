@@ -1,7 +1,7 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
-using WebsocketGateway.Config;
+using WebsocketGateway.Models;
 using WebsocketGateway.Services.Publishing;
 
 namespace WebsocketGateway.Hubs
@@ -29,12 +29,9 @@ namespace WebsocketGateway.Hubs
         /// </summary>
         /// <returns></returns>
         // ReSharper disable once UnusedMember.Global
-        public async Task InitialRequest()
+        public IReadOnlyList<FlightDataDto> GetCurrentlyActiveFlightData()
         {
-            await Clients.Caller.SendAsync(
-                IConstants.DataMethod,
-                _signalRInitialDataProvider.GetCurrentlyActiveFlightData()
-            );
+            return _signalRInitialDataProvider.GetCurrentlyActiveFlightData();
         }
     }
 }

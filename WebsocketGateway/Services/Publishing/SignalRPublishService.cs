@@ -59,7 +59,7 @@ namespace WebsocketGateway.Services.Publishing
             _stream = _messageProcessService.Stream.Subscribe(async entry =>
             {
                 _signalRInitialDataProvider.Push(entry);
-                await _hubContext.Clients.All.SendAsync(IConstants.DataMethod, entry, cancellationToken);
+                await _hubContext.Clients.All.SendAsync(IConstants.NewDataMethod, entry, cancellationToken);
             });
 
             return Task.CompletedTask;

@@ -172,11 +172,20 @@
         },
         mounted() {
             // noinspection JSUndeclaredVariable
+            /**
+             * Requests permission to send Notifications
+             */
             requestNotificationPermissions = () => {
                 Notification.requestPermission(permission => this.$nextTick(() => this.hasNotificationPermission = permission === 'granted'));
             }
 
             // noinspection JSUndeclaredVariable
+            /**
+             * Sends a notification with given information
+             * @param title string Title of the notification
+             * @param message string Message of the notification
+             * @param icon string Icon of the message
+             */
             sendNotification = (title, message, icon) => {
                 if (this.hasNotificationPermission) {
                     return new Notification(title, {body: message, icon})
@@ -186,6 +195,9 @@
             // noinspection JSUndeclaredVariable
             /**
              * Converts given coordinate (given as number) to a readable format
+             * @param coordinate number The coordinate-value to convert
+             * @param isLatitude boolean If true, given coordinate is a latitude value, otherwise a longitude
+             * @returns string Formatted coordinate value
              */
             convertCoordinateToReadable = (coordinate, isLatitude) => {
                 let degrees = Math.floor(coordinate);
@@ -217,8 +229,8 @@
             // noinspection JSUndeclaredVariable
             /**
              * Updates the iframes coordinates to the given ones.
-             * @param latitude
-             * @param longitude
+             * @param latitude number Latitude of coordinate
+             * @param longitude number Longitude of coordinate
              */
             updateFrameCoordinates = (latitude, longitude) => {
                 // HACKY workaround, the frame won't reload if only the anchor changes, so blank out the page and reassign it to force reload
@@ -232,36 +244,45 @@
             }
 
             // noinspection JSUndeclaredVariable
-            handleMessage = (message, notificationsEnabled = true) => {
-                if (Array.isArray(message)) {
-                    message.forEach(e => handleMessage(e, false));
-                    return;
-                }
+            /**
+             * Handles initial data to show in list
+             * @param entries object[] The initial objects to add
+             */
+            handleInitialData = (entries) => {
+                entries.forEach(e => handleMessage(e, false));
+                sortEntries();
+            }
 
-                let entry = message;
-
+            // noinspection JSUndeclaredVariable
+            /**
+             * Handles new incoming data
+             * @param entry object The new object to add
+             * @param isUpdate bool If true, the message is handled as an update after getting initial data
+             */
+            handleMessage = (entry, isUpdate = true) => {
                 entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
-                let outdatedData = this.data || [];
-                let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.id === entry.aircraft.id);
+
+                this.data = this.data || [];
+                let outdatedIndex = this.data.findIndex(outdatedEntry => outdatedEntry.aircraft.id === entry.aircraft.id);
 
                 if (outdatedIndex === -1) {
-                    if (notificationsEnabled) {
+                    if (isUpdate) {
                         const text = entry.aircraft.registration
                             ? `Die [${entry.aircraft.registration}] ist neu aufgetaucht.`
                             : 'Ein Flugzeug mit unbekannter Kennung ist neu aufgetaucht.';
                         sendNotification(`Gliderradar: Neues Flugzeug`, text);
                     }
 
-                    outdatedData.push(entry);
+                    this.data.push(entry);
                 } else {
-                    if (notificationsEnabled) {
-                        if (!outdatedData[outdatedIndex].flying && entry.flying) {
+                    if (isUpdate) {
+                        if (!this.data[outdatedIndex].flying && entry.flying) {
                             const text = entry.aircraft.registration
                                 ? `Die [${entry.aircraft.registration}] ist gestartet.`
                                 : 'Ein Flugzeug mit unbekannter Kennung ist gestartet.';
                             sendNotification(`Gliderradar: Start`, text);
 
-                        } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
+                        } else if (this.data[outdatedIndex].flying && !entry.flying) {
                             const text = entry.aircraft.registration
                                 ? `Die [${entry.aircraft.registration}] ist gelandet.`
                                 : 'Ein Flugzeug mit unbekannter Kennung ist gelandet.';
@@ -269,10 +290,20 @@
                         }
                     }
 
-                    outdatedData[outdatedIndex] = entry;
-                }
+                    this.data[outdatedIndex] = entry;
 
-                this.data = outdatedData
+                    if (isUpdate) {
+                        sortEntries();
+                    }
+                }
+            }
+
+            // noinspection JSUndeclaredVariable
+            /**
+             * Sorts current entries
+             */
+            sortEntries = () => {
+                this.data = this.data
                     .sort((entry1, entry2) => {
                         const sign1 = (entry1.aircraft.registration || '').toString().toLowerCase();
                         const sign2 = (entry2.aircraft.registration || '').toString().toLowerCase();
@@ -314,10 +345,12 @@
                     });
                 }
 
-                connection.on("Data", (message) => handleMessage(message));
+                connection.on("NewData", handleMessage);
                 connection.onclose(async () => await start());
 
-                await start().then(_ => connection.send("InitialRequest"));
+                await start()
+                    .then(_ => connection.invoke("GetCurrentlyActiveFlightData"))
+                    .then(handleInitialData);
             }
         }
     });
