@@ -2,9 +2,17 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Gliderradar LIVE &#x1F534</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>Gliderradar LIVE (EDLG)</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="apple-touch-icon" sizes="180x180" href="/niklas/gliderradar/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/niklas/gliderradar/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/niklas/gliderradar/favicon-16x16.png">
+    <link rel="manifest" href="/niklas/gliderradar/site.webmanifest">
+    <link rel="mask-icon" href="/niklas/gliderradar/safari-pinned-tab.svg" color="#ff4444">
+    <link rel="shortcut icon" href="/niklas/gliderradar/favicon.ico">
+    <meta name="msapplication-TileColor" content="#b91d47">
+    <meta name="msapplication-config" content="/niklas/gliderradar/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
     <style>
         iframe {
             width: 100%;
@@ -38,6 +46,19 @@
             <p class="lead">Aktuell aktive Flugzeuge (mit FLARM) in Kleve und Asperden</p>
         </div>
     </div>
+    <div class="container" v-if="hasNotificationPermission === false">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Notifications</h5>
+                <p class="card-text">
+                    Aktiviere die Notifications, um automatisch informiert zu werden, wenn ein Flugzeug startet, landet
+                    oder neu auf der Karte erscheint.
+                </p>
+                <a href="javascript:void(0)" v-on:click="requestNotificationPermissions()" class="btn btn-primary">Notifications
+                    aktivieren</a>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <table class="table table-striped table-bordered table-dresponsive">
             <thead class="thead-dark">
@@ -56,11 +77,12 @@
             <template v-for="item in data">
                 <tr>
                     <td class="variable-value">
-                        <span><b>{{item.aircraft.registration || 'unbekannt'}}<br>{{
-                            item.aircraft.registration && item.aircraft.type
-                                ?  item.aircraft.type
-                                : ''
-                            }}</b></span>
+                        <span>
+                            <span v-if="!!item.aircraft.registration">
+                                <b>{{item.aircraft.registration}}</b><br>{{item.aircraft.type}}
+                            </span>
+                            <span v-if="!item.aircraft.registration">unbekannt</span>
+                        </span>
                     </td>
                     <td class="variable-value"><span>{{item.altitude.toFixed(0)}}m</span></td>
                     <td class="variable-value"><span>{{item.speed.toFixed(0)}}km/h</span></td>
@@ -68,14 +90,15 @@
                     <td class="variable-value">
                         <span>
                             <a class="coordinate-link"
-                               v-on:click="updateFrame(item.position.latitude, item.position.longitude)">
+                               title="Zeigt das Flugzeug auf der Live-Map an."
+                               v-on:click="updateFrameCoordinates(item.position.latitude, item.position.longitude)">
                                 {{convertCoordinateToReadable(item.position.latitude, true)}}<br>
                                 {{convertCoordinateToReadable(item.position.longitude, false)}}
                             </a>
                         </span>
                     </td>
                     <td class="variable-value"><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
-                    <td class="variable-value"><span>{{item.turnRate}}</span></td>
+                    <td class="variable-value"><span>{{Math.round(item.turnRate)}}</span></td>
                     <td><span>{{                        
                         item.flying 
                             ? item.turnRate >= 4 // approximated...
@@ -94,31 +117,28 @@
         <div class="d-flex flex-row bd-highlight mb-3 align-items-stretch">
             <div class="card mr-2">
                 <div class="card-body">
-                    <h5 class="card-title">Notifications aktiveren!</h5>
-                    <p class="card-text"><br></p>
-                    <a href="javascript:checkNotificationPermissions()" class="btn btn-primary stretched-link">Hier
-                        klicken, um Notifications zu erhalten!</a>
-                </div>
-            </div>
-            <div class="card mr-2">
-                <div class="card-body">
-                    <h5 class="card-title">Open Glider Network</h5>
-                    <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie eine
-                        Entwickler-Doku.</p>
-                    <a href="http://wiki.glidernet.org/" class="btn btn-primary stretched-link" target="_blank">zum Open
-                        Glider Network</a>
+                    <h5 class="card-title">Live-Map</h5>
+                    <p class="card-text">Zeigt eine eingebettete Live-Map (bereitgestellt von <a
+                            href="https://live.glidernet.org" target="_blank">live.glidernet.org</a>)
+                    </p>
+                    <a href="javascript:void(0)" v-on:click="showFrame = !showFrame" class="btn btn-primary">
+                        Live-Map {{!showFrame ? 'aktivieren' : 'deaktivieren'}}
+                    </a>
                 </div>
             </div>
             <div class="card ml-2">
                 <div class="card-body">
-                    <h5 class="card-title">Live-Map</h5>
-                    <p class="card-text">Aktiviert eine eingebettete Live-Map (von <a href="https://live.glidernet.org">live.glidernet.org</a>)
-                    </p>
-                    <a href="javascript:toggleFrame()" class="btn btn-primary stretched-link">Live-Map</a>
+                    <h5 class="card-title">Open Glider Network</h5>
+                    <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie eine
+                        Entwickler-Doku.</p>
+                    <a href="http://wiki.glidernet.org/" class="btn btn-primary" target="_blank">zum Open
+                        Glider Network</a>
                 </div>
             </div>
         </div>
-        <div id="frame-container"></div>
+        <div v-if="showFrame === true" id="frame-container">
+            <iframe name="frame" allowfullscreen :src="iframeSrc"></iframe>
+        </div>
     </div>
 </div>
 <footer class="page-footer font-small blue">
@@ -137,19 +157,32 @@
 <script>
     const MINIMAL_ALTITUDE = 15; // m
     const MINIMAL_SPEED = 20; // km/h
-    const SOCKET_URL = "http://localhost:5000/websocket";
-    let askedNotificationPermission = false;
-    let hasNotificationPermission = false;
+    const SOCKET_URL = window.location.href.match(/(\w+:\/\/.*\/)(.+\.\w+)?/)[0] + "websocket";
 
     // noinspection JSUnresolvedFunction
     let app = new Vue({
         el: '#list',
         data() {
             return {
-                data: []
+                data: [],
+                hasNotificationPermission: Notification && Notification.permission === 'granted',
+                showFrame: false,
+                iframeSrc: 'https://live.glidernet.org/#c=51.74896,6.15643&z=12&s=1'
             }
         },
         mounted() {
+            // noinspection JSUndeclaredVariable
+            requestNotificationPermissions = () => {
+                Notification.requestPermission(permission => this.$nextTick(() => this.hasNotificationPermission = permission === 'granted'));
+            }
+
+            // noinspection JSUndeclaredVariable
+            sendNotification = (title, message, icon) => {
+                if (this.hasNotificationPermission) {
+                    return new Notification(title, {body: message, icon})
+                }
+            }
+
             // noinspection JSUndeclaredVariable
             /**
              * Converts given coordinate (given as number) to a readable format
@@ -187,22 +220,21 @@
              * @param latitude
              * @param longitude
              */
-            updateFrame = (latitude, longitude) => {
-                const frame = document.querySelector('#frame-container > iframe');
-                if (frame === null) {
-                    console.warn("Trying to update frame that could not be found.");
-                    toggleFrame();
-                }
-
+            updateFrameCoordinates = (latitude, longitude) => {
                 // HACKY workaround, the frame won't reload if only the anchor changes, so blank out the page and reassign it to force reload
-                frame.src = "about:blank";
-                setTimeout(() => frame.src = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1`, 10);
+                this.$nextTick(() => this.iframeSrc = "about:blank");
+                setTimeout(() => this.$nextTick(() => {
+                    this.iframeSrc = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1`;
+                    if (!this.showFrame) {
+                        this.showFrame = true;
+                    }
+                }), 10);
             }
 
             // noinspection JSUndeclaredVariable
-            handleMessage = (message) => {
+            handleMessage = (message, notificationsEnabled = true) => {
                 if (Array.isArray(message)) {
-                    message.forEach(e => handleMessage(e));
+                    message.forEach(e => handleMessage(e, false));
                     return;
                 }
 
@@ -210,16 +242,31 @@
 
                 entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
                 let outdatedData = this.data || [];
-                let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.aircraftId === entry.aircraft.aircraftId);
+                let outdatedIndex = outdatedData.findIndex(outdatedEntry => outdatedEntry.aircraft.id === entry.aircraft.id);
 
                 if (outdatedIndex === -1) {
-                    sendNotification(`Gliderradar: Neues Flugzeug`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist aufgetaucht.`);
+                    if (notificationsEnabled) {
+                        const text = entry.aircraft.registration
+                            ? `Die [${entry.aircraft.registration}] ist neu aufgetaucht.`
+                            : 'Ein Flugzeug mit unbekannter Kennung ist neu aufgetaucht.';
+                        sendNotification(`Gliderradar: Neues Flugzeug`, text);
+                    }
+
                     outdatedData.push(entry);
                 } else {
-                    if (!outdatedData[outdatedIndex].flying && entry.flying) {
-                        sendNotification(`Gliderradar: Start`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gestartet.`);
-                    } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
-                        sendNotification(`Gliderradar: Landung`, `Das Flugzeug [${entry.aircraft.registration || 'unbekannt'}] ist gelandet.`);
+                    if (notificationsEnabled) {
+                        if (!outdatedData[outdatedIndex].flying && entry.flying) {
+                            const text = entry.aircraft.registration
+                                ? `Die [${entry.aircraft.registration}] ist gestartet.`
+                                : 'Ein Flugzeug mit unbekannter Kennung ist gestartet.';
+                            sendNotification(`Gliderradar: Start`, text);
+
+                        } else if (outdatedData[outdatedIndex].flying && !entry.flying) {
+                            const text = entry.aircraft.registration
+                                ? `Die [${entry.aircraft.registration}] ist gelandet.`
+                                : 'Ein Flugzeug mit unbekannter Kennung ist gelandet.';
+                            sendNotification(`Gliderradar: Landung`, text);
+                        }
                     }
 
                     outdatedData[outdatedIndex] = entry;
@@ -229,6 +276,9 @@
                     .sort((entry1, entry2) => {
                         const sign1 = (entry1.aircraft.registration || '').toString().toLowerCase();
                         const sign2 = (entry2.aircraft.registration || '').toString().toLowerCase();
+
+                        if (sign1 === '') return 1;
+                        if (sign2 === '') return -1;
 
                         if (sign1 < sign2) return -1;
                         if (sign2 < sign1) return 1;
@@ -256,64 +306,21 @@
                 function start() {
                     return new Promise((resolve) => {
                         connection.start()
-                            .then((connection) => {
-                                console.log("Connected to SignalR socket");
-                                resolve(connection);
-                            })
+                            .then(resolve)
                             .catch((error) => {
-                                console.log("Could not connect to SignalR socket. Retry after 5 seconds...", error);
-                                setTimeout(() => start().then(resolve), 5000)
-                            })
+                                console.error("Could not connect to SignalR socket. Retrying in 5 seconds.", error);
+                                setTimeout(() => start().then(resolve), 5000);
+                            });
                     });
                 }
 
                 connection.on("Data", (message) => handleMessage(message));
-
                 connection.onclose(async () => await start());
 
-                await start()
-                    .then(_ => connection.send("InitialRequest"))
-                    .catch(err => console.error("Error during connection!", err));
+                await start().then(_ => connection.send("InitialRequest"));
             }
         }
     });
-
-    function sendNotification(title, message, icon) {
-        if (hasNotificationPermission) {
-            return new Notification(title, {body: message, icon})
-        }
-    }
-
-    function toggleFrame() {
-        const hasFrame = document.querySelector('#frame-container > iframe') !== null;
-        if (hasFrame) {
-            const container = document.querySelector('#frame-container');
-            container.removeChild(container.querySelector('iframe'));
-        } else {
-            const container = document.querySelector('#frame-container');
-            const newChild = document.createElement('iframe');
-            newChild.setAttribute('name', 'frame');
-            newChild.setAttribute('src', 'https://live.glidernet.org/#c=51.74896,6.15643&z=12&s=1');
-            newChild.setAttribute('allowfullscreen', '1');
-            container.appendChild(newChild);
-        }
-    }
-
-    function checkNotificationPermissions() {
-        if (askedNotificationPermission) {
-            return;
-        }
-        askedNotificationPermission = true;
-
-        if (!('Notification' in window)) {
-            hasNotificationPermission = false;
-        } else if (Notification.permission === 'granted') {
-            hasNotificationPermission = true;
-        } else {
-            // noinspection JSIgnoredPromiseFromCall
-            Notification.requestPermission(permission => hasNotificationPermission = permission === 'granted');
-        }
-    }
 
     connect();
 </script>

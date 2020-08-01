@@ -34,7 +34,6 @@ namespace WebsocketGateway
         {
             services.AddControllers();
 
-            ConfigureOgnGatewayServices(services);
             ConfigureConfigBasedServices(services);
 
             services.AddSingleton<SignalRInitialDataProvider>();
@@ -71,25 +70,6 @@ namespace WebsocketGateway
         }
 
         /// <summary>
-        /// Configures all <see cref="OgnGateway"/>-specific services
-        /// </summary>
-        /// <param name="services">The systems' IServiceCollection</param>
-        private static void ConfigureOgnGatewayServices(IServiceCollection services)
-        {
-            if (services == null) throw new ArgumentNullException(nameof(services));
-
-            var config = new AprsConfigLoader().LoadAsync().GetAwaiter().GetResult();
-
-            services.AddSingleton(new StreamListener(config));
-            services.AddSingleton(_ =>
-            {
-                var provider = new AircraftProvider(config);
-                provider.Initialize().GetAwaiter().GetResult();
-                return provider;
-            });
-        }
-
-        /// <summary>
         /// Configures all services & providers that are based on the appsettings.json
         /// </summary>
         /// <param name="services">The systems' IServiceCollection</param>
@@ -99,8 +79,19 @@ namespace WebsocketGateway
 
             var gatewayConfiguration = new GatewayConfiguration();
             Configuration.GetSection("GatewayOptions").Bind(gatewayConfiguration);
+            services.AddSingleton(gatewayConfiguration);
 
-            services.AddSingleton(_ => gatewayConfiguration);
+            var aprsConfig = new AprsConfig();
+            Configuration.GetSection("AprsConfig").Bind(aprsConfig);
+            services.AddSingleton(aprsConfig);
+
+            services.AddSingleton<StreamListener>();
+            services.AddSingleton(_ =>
+            {
+                var provider = new AircraftProvider(aprsConfig);
+                provider.Initialize().GetAwaiter().GetResult();
+                return provider;
+            });
 
             if (gatewayConfiguration.IntervalSeconds != null)
             {
