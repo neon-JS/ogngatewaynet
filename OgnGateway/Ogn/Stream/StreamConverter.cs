@@ -11,10 +11,18 @@ namespace OgnGateway.Ogn.Stream
     public static class StreamConverter
     {
         /// <summary>
-        /// Main pattern for getting all needed information from a raw stream-line
+        /// Main pattern for getting all needed information from a raw stream-line.
         /// </summary>
+        /// <remarks>
+        /// Note that at the part of "idXXYYYYYY", "XX" must not be 40 or higher!
+        /// This is due to the fact that this 2-digit hex number contains the tracking-information as _binary_ in the
+        /// form of "0bSTxxxxxx" and if S = 1 or T = 1, we should discard the message.
+        /// So all "allowed" values are in the range of 0b00000000 - 0b00111111, or in hex: 0x00 - 0x3f,
+        /// therefore we can discard all messages not in this range.
+        /// <seealso href="https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87"/>
+        /// </remarks>
         private const string LineMatchPattern =
-            @".*?h([0-9.]*[NS])[/\\]([0-9.]*[WE]).*?(\d{3})/(\d{3})/A=(\d+).*?id.{2}([A-Za-z0-9]+).*?([-0-9]+)fpm.*?([-.0-9]+)rot.*";
+            @".*?h([0-9.]*[NS])[/\\]([0-9.]*[WE]).*?(\d{3})/(\d{3})/A=(\d+).*?id[0-3]{1}[A-Fa-f0-9]{1}([A-Za-z0-9]+).*?([-0-9]+)fpm.*?([-.0-9]+)rot.*";
 
         /// <summary>
         /// Pattern for converting coordinate strings to valid numeric string

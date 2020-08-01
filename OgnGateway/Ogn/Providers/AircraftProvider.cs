@@ -62,6 +62,7 @@ namespace OgnGateway.Ogn.Providers
         /// Loads and parses all aircraft from OGN into a list
         /// </summary>
         /// <returns>List of all aircraft known to OGN</returns>
+        /// <seealso href="https://github.com/glidernet/ogn-ddb/blob/master/README.md"/>
         /// <exception cref="Exception">On invalid config or HTTP-errors</exception>
         private async Task<Dictionary<string, Aircraft>> FetchAircraftList()
         {
@@ -85,8 +86,13 @@ namespace OgnGateway.Ogn.Providers
                 .ToList()
                 .Where(line => !line.StartsWith('#'))
                 .Select(line => line.Split(','))
-                .Where(values => values.Length >= 5)
-                .Select(values => new Aircraft(values[1], values[4], values[3], values[2]))
+                .Where(values => values.Length >= 7)
+                .Select(values =>
+                {
+                    //              tracked (Y/N)            identified (Y/N)
+                    var isVisible = values[5].Equals("Y") && values[6].Trim().Equals("Y");
+                    return new Aircraft(values[1], values[4], values[3], values[2], isVisible);
+                })
                 .All(aircraft => aircraftList.TryAdd(aircraft.Id, aircraft));
 
             if (!insertResult)

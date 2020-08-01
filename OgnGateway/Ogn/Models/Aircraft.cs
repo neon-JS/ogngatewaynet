@@ -26,7 +26,12 @@ namespace OgnGateway.Ogn.Models
         /// </summary>
         public string? Type { get; }
 
-        public Aircraft(string aircraftId, string? callSign = null, string? registration = null, string? type = null)
+        /// <summary>
+        /// Tells whether the aircraft should be shown or not
+        /// </summary>
+        public bool IsVisible { get; }
+
+        public Aircraft(string aircraftId, string? callSign, string? registration, string? type, bool isVisible)
         {
             aircraftId.EnsureNotEmpty();
 
@@ -34,12 +39,29 @@ namespace OgnGateway.Ogn.Models
             CallSign = callSign;
             Registration = registration;
             Type = type;
+            IsVisible = isVisible;
+        }
+
+        /// <summary>
+        /// Creates an empty aircraft in case we can't find the aircraft in the <see cref="Providers.AircraftProvider"/>
+        /// </summary>
+        /// <param name="aircraftId">OGN-identifier of the aircraft</param>
+        public Aircraft(string aircraftId)
+        {
+            aircraftId.EnsureNotEmpty();
+
+            Id = aircraftId;
+            CallSign = null;
+            Registration = null;
+            Type = null;
+            IsVisible = true;
         }
 
         public override string ToString()
         {
-            return
-                $"\n\t\t[Aircraft]\n\t\tID: {Id}\n\t\tcall-sign: {CallSign}\n\t\tregistration: {Registration}\n\t\ttype: {Type}";
+            return !IsVisible
+                ? $"\n\t\t[Aircraft]\n\t\tID: {Id} (Not visible)"
+                : $"\n\t\t[Aircraft]\n\t\tID: {Id}\n\t\tcall-sign: {CallSign}\n\t\tregistration: {Registration}\n\t\ttype: {Type}";
         }
     }
 }

@@ -46,7 +46,14 @@ namespace WebsocketGateway.Services.Ogn.Actors
             // When receiving FlightData, convert it into FlightDataDto and pass it to the next actor
             Receive<FlightData>(message =>
             {
-                var convertedMessage = new FlightDataDto(message, aircraftProvider.Load(message.AircraftId));
+                var aircraft = aircraftProvider.Load(message.AircraftId);
+                if (!aircraft.IsVisible)
+                {
+                    // The aircraft should not be visible, therefore drop the message.
+                    return;
+                }
+
+                var convertedMessage = new FlightDataDto(message, aircraft);
 
                 // The next step also happens on this Actor so tell another "Self" to handle the FlightData
                 actorSystem.ActorSelection(Self.Path).Tell(convertedMessage, Self);
