@@ -100,7 +100,7 @@
                     <td class="variable-value"><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
                     <td class="variable-value"><span>{{Math.round(item.turnRate)}}</span></td>
                     <td><span>{{                        
-                        item.flying 
+                        item.isFlying
                             ? item.turnRate >= 4 // approximated...
                                 ? 'in Thermik'
                                 : 'in der Luft'
@@ -155,8 +155,6 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.3/signalr.min.js"></script>
 <script>
-    const MINIMAL_ALTITUDE = 15; // m
-    const MINIMAL_SPEED = 20; // km/h
     const SOCKET_URL = window.location.href.match(/(\w+:\/\/.*\/)(.+\.\w+)?/)[0] + "websocket";
 
     // noinspection JSUnresolvedFunction
@@ -260,8 +258,6 @@
              * @param isUpdate bool If true, the message is handled as an update after getting initial data
              */
             handleMessage = (entry, isUpdate = true) => {
-                entry.flying = entry.altitude >= MINIMAL_ALTITUDE && entry.speed >= MINIMAL_SPEED;
-
                 this.data = this.data || [];
                 let outdatedIndex = this.data.findIndex(outdatedEntry => outdatedEntry.aircraft.id === entry.aircraft.id);
 
@@ -276,13 +272,13 @@
                     this.data.push(entry);
                 } else {
                     if (isUpdate) {
-                        if (!this.data[outdatedIndex].flying && entry.flying) {
+                        if (!this.data[outdatedIndex].isFlying && entry.isFlying) {
                             const text = entry.aircraft.registration
                                 ? `Die [${entry.aircraft.registration}] ist gestartet.`
                                 : 'Ein Flugzeug mit unbekannter Kennung ist gestartet.';
                             sendNotification(`Gliderradar: Start`, text);
 
-                        } else if (this.data[outdatedIndex].flying && !entry.flying) {
+                        } else if (this.data[outdatedIndex].isFlying && !entry.isFlying) {
                             const text = entry.aircraft.registration
                                 ? `Die [${entry.aircraft.registration}] ist gelandet.`
                                 : 'Ein Flugzeug mit unbekannter Kennung ist gelandet.';
@@ -305,19 +301,14 @@
             sortEntries = () => {
                 this.data = this.data
                     .sort((entry1, entry2) => {
-                        const sign1 = (entry1.aircraft.registration || '').toString().toLowerCase();
-                        const sign2 = (entry2.aircraft.registration || '').toString().toLowerCase();
+                        if (entry1.aircraft.registration === '') return 1;
+                        if (entry2.aircraft.registration === '') return -1;
 
-                        if (sign1 === '') return 1;
-                        if (sign2 === '') return -1;
-
-                        if (sign1 < sign2) return -1;
-                        if (sign2 < sign1) return 1;
-                        return 0;
+                        return (entry1.aircraft.id > entry2.aircraft.id) ? 1 : -1;
                     })
                     .sort((entry1, entry2) => {
-                        if (entry1.flying && !entry2.flying) return -1;
-                        if (!entry1.flying && entry2.flying) return 1;
+                        if (entry1.isFlying && !entry2.isFlying) return -1;
+                        if (!entry1.isFlying && entry2.isFlying) return 1;
                         return 0;
                     });
             }

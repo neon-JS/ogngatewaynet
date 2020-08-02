@@ -2,19 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Akka.Util.Internal;
-using WebsocketGateway.Config;
+using WebsocketGateway.Actors;
+using WebsocketGateway.Dtos;
 using WebsocketGateway.Hubs;
-using WebsocketGateway.Models;
 
-namespace WebsocketGateway.Services.Publishing
+namespace WebsocketGateway.Services
 {
     /// <summary>
     /// A provider that is used in the <see cref="DefaultHub"/> to give them the currently active
-    /// airplane-data. We must not use the <see cref="SignalRPublishService"/> as it's an
-    /// IHostedService which can not be injected by DI. But as this Provider is configured as a singleton and injected
-    /// into the <see cref="SignalRPublishService"/>, we can use this as an intermediate provider.
+    /// airplane-data. The messages are provided by the <see cref="PublishActor"/> and have to be
+    /// stored in here to pass them to the <see cref="DefaultHub"/>.
     /// </summary>
-    public class SignalRInitialDataProvider
+    public class LatestDataProvider
     {
         /// <summary>
         /// The currently active flight-data.
@@ -26,7 +25,7 @@ namespace WebsocketGateway.Services.Publishing
         /// </summary>
         private readonly GatewayConfiguration _gatewayConfiguration;
 
-        public SignalRInitialDataProvider(GatewayConfiguration gatewayConfiguration)
+        public LatestDataProvider(GatewayConfiguration gatewayConfiguration)
         {
             _gatewayConfiguration = gatewayConfiguration
                                     ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
@@ -48,7 +47,7 @@ namespace WebsocketGateway.Services.Publishing
         /// Returns the currently active flight-data.
         /// </summary>
         /// <returns>currently active flight-data</returns>
-        public IReadOnlyList<FlightDataDto> GetCurrentlyActiveFlightData()
+        public IReadOnlyList<FlightDataDto> GetLatestData()
         {
             CleanUpEntries();
             return _activeFlightData.Values.ToList();

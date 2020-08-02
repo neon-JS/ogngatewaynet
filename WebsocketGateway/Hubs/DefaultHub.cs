@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
-using WebsocketGateway.Models;
-using WebsocketGateway.Services.Publishing;
+using WebsocketGateway.Dtos;
+using WebsocketGateway.Services;
 
 namespace WebsocketGateway.Hubs
 {
@@ -15,12 +15,12 @@ namespace WebsocketGateway.Hubs
         /// <summary>
         /// Data-provider which gives us the currently active aircraft.
         /// </summary>
-        private readonly SignalRInitialDataProvider _signalRInitialDataProvider;
+        private readonly LatestDataProvider _latestDataProvider;
 
-        public DefaultHub(SignalRInitialDataProvider signalRInitialDataProvider)
+        public DefaultHub(LatestDataProvider latestDataProvider)
         {
-            _signalRInitialDataProvider = signalRInitialDataProvider
-                                          ?? throw new ArgumentNullException(nameof(signalRInitialDataProvider));
+            _latestDataProvider = latestDataProvider
+                                          ?? throw new ArgumentNullException(nameof(latestDataProvider));
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace WebsocketGateway.Hubs
         // ReSharper disable once UnusedMember.Global
         public IReadOnlyList<FlightDataDto> GetCurrentlyActiveFlightData()
         {
-            return _signalRInitialDataProvider.GetCurrentlyActiveFlightData();
+            return _latestDataProvider.GetLatestData();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using Akka.Actor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -7,11 +8,10 @@ using Microsoft.Extensions.Hosting;
 using OgnGateway.Ogn.Config;
 using OgnGateway.Ogn.Providers;
 using OgnGateway.Ogn.Stream;
-using WebsocketGateway.Config;
+using WebsocketGateway.Dtos;
+using WebsocketGateway.Factories;
 using WebsocketGateway.Hubs;
-using WebsocketGateway.Services.MessageProcessing;
-using WebsocketGateway.Services.Ogn;
-using WebsocketGateway.Services.Publishing;
+using WebsocketGateway.Services;
 
 namespace WebsocketGateway
 {
@@ -36,11 +36,13 @@ namespace WebsocketGateway
 
             ConfigureConfigBasedServices(services);
 
-            services.AddSingleton<SignalRInitialDataProvider>();
-            services.AddHostedService<SignalRPublishService>();
-            services.AddHostedService<OgnActorControllerService>();
+            services.AddSingleton<LatestDataProvider>();
+            services.AddSingleton(_ => ActorSystem.Create("WebsocketGateway"));
 
             services.AddSignalR();
+            services.AddSingleton<ActorPropsFactory>();
+            services.AddHostedService<ActorControlService>();
+
             services.AddCors(options => options.AddPolicy("CorsPolicyDev",
                 builder =>
                 {
@@ -92,15 +94,6 @@ namespace WebsocketGateway
                 provider.Initialize().GetAwaiter().GetResult();
                 return provider;
             });
-
-            if (gatewayConfiguration.IntervalSeconds != null)
-            {
-                services.AddSingleton<IMessageProcessService, DelayMessageProcessService>();
-            }
-            else
-            {
-                services.AddSingleton<IMessageProcessService, InstantMessageProcessService>();
-            }
         }
     }
 }

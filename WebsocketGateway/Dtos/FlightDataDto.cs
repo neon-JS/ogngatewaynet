@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using OgnGateway.Ogn.Models;
 
-namespace WebsocketGateway.Models
+namespace WebsocketGateway.Dtos
 {
     /// <summary>
     /// Representation of the data that will be sent to the clients
@@ -51,7 +51,12 @@ namespace WebsocketGateway.Models
         /// </summary>
         public Aircraft Aircraft { get; }
 
-        public FlightDataDto(FlightData flightData, Aircraft aircraft)
+        /// <summary>
+        /// Determines whether the aircraft is currently flying or not, based on the current configuration
+        /// </summary>
+        public bool IsFlying { get; }
+
+        public FlightDataDto(FlightData flightData, Aircraft aircraft, bool isFlying)
         {
             if (flightData == null) throw new ArgumentNullException(nameof(flightData));
 
@@ -63,6 +68,7 @@ namespace WebsocketGateway.Models
             Course = flightData.Course;
             Position = flightData.Position;
             DateTime = flightData.DateTime;
+            IsFlying = isFlying;
         }
     }
 }

@@ -3,31 +3,27 @@ using Akka.Actor;
 using OgnGateway.Ogn.Models;
 using OgnGateway.Ogn.Providers;
 using OgnGateway.Ogn.Stream;
-using WebsocketGateway.Models;
-using WebsocketGateway.Services.MessageProcessing;
+using WebsocketGateway.Dtos;
+using WebsocketGateway.Services;
 
-namespace WebsocketGateway.Services.Ogn.Actors
+namespace WebsocketGateway.Actors
 {
     /// <summary>
     /// Actor which can handle the parsing-events separately.
-    /// As it handles all necessary parsing-tasks, it will inform itself on the next step.
+    /// As it handles all necessary parsing-tasks, it will inform itself on the next step
+    /// and inform the IMessageProcessActor when finished parsing.
     /// </summary>
-    public class OgnActor : ReceiveActor
+    public class OgnConvertActor : ReceiveActor
     {
-        /// <summary>
-        /// Identifier of the Actor type
-        /// </summary>
-        public const string Name = "Main";
-
-        public OgnActor(
+        public OgnConvertActor(
             ActorSystem actorSystem,
             AircraftProvider aircraftProvider,
-            IMessageProcessService messageProcessService
+            GatewayConfiguration gatewayConfiguration
         )
         {
             if (actorSystem == null) throw new ArgumentNullException(nameof(actorSystem));
             if (aircraftProvider == null) throw new ArgumentNullException(nameof(aircraftProvider));
-            if (messageProcessService == null) throw new ArgumentNullException(nameof(messageProcessService));
+            if (gatewayConfiguration == null) throw new ArgumentNullException(nameof(gatewayConfiguration));
 
             // When receiving the raw string from the listener, convert it to FlightData and pass it to the next Actor
             Receive<string>(message =>
@@ -53,15 +49,16 @@ namespace WebsocketGateway.Services.Ogn.Actors
                     return;
                 }
 
-                var convertedMessage = new FlightDataDto(message, aircraft);
+                var isFlying = message.Altitude >= gatewayConfiguration.MinimalAltitude
+                               && message.Speed >= gatewayConfiguration.MinimalSpeed;
 
-                // The next step also happens on this Actor so tell another "Self" to handle the FlightData
-                actorSystem.ActorSelection(Self.Path).Tell(convertedMessage, Self);
+                var convertedMessage = new FlightDataDto(message, aircraft, isFlying);
+
+                // Pass the convertedMessage to the IMessageProcessActor so it can be further processed.
+                actorSystem
+                    .ActorSelection($"user/{ActorControlService.MessageProcessActorName}")
+                    .Tell(convertedMessage, Self);
             });
-
-            // When receiving FlightDataDto, pass it to the IMessageProcessService so it can be published.
-            // Our work is finished here
-            Receive<FlightDataDto>(messageProcessService.Push);
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace WebsocketGateway.Config
+namespace WebsocketGateway.Dtos
 {
     /// <summary>
     /// Configuration-object of the Gateway, set up by application.json
@@ -8,7 +8,6 @@ namespace WebsocketGateway.Config
         /// <summary>
         /// If true, only events are published (Aircraft starting, aircraft landing)
         /// </summary>
-        // ReSharper disable once UnusedMember.Global
         public bool EventsOnly { get; set; }
 
         /// <summary>

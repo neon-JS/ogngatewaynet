@@ -2,35 +2,34 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Routing;
 using Microsoft.Extensions.Hosting;
-using OgnGateway.Ogn.Providers;
 using OgnGateway.Ogn.Stream;
-using WebsocketGateway.Config;
-using WebsocketGateway.Services.MessageProcessing;
-using WebsocketGateway.Services.Ogn.Actors;
+using WebsocketGateway.Actors;
+using WebsocketGateway.Dtos;
+using WebsocketGateway.Extensions.Dtos;
+using WebsocketGateway.Factories;
 
-namespace WebsocketGateway.Services.Ogn
+namespace WebsocketGateway.Services
 {
     /// <summary>
     /// Controller that handles the working Actors which will parse and pass on incoming messages from the raw OGN-stream
     /// </summary>
-    public class OgnActorControllerService : IHostedService
+    public class ActorControlService : IHostedService
     {
         /// <summary>
-        /// Name of the Actor-System
+        /// Name of the MessageProcessActor
         /// </summary>
-        private const string SystemName = "OgnSystem";
+        public const string MessageProcessActorName = "MessageProcess";
 
         /// <summary>
-        /// We need this provider in the Actors during parsing
+        /// Name of the PublishActor
         /// </summary>
-        private readonly AircraftProvider _aircraftProvider;
+        public const string PublishActorName = "Publish";
 
         /// <summary>
-        /// We need this in the Actors when passing the converted information
+        /// Name of the OgnConvertActor
         /// </summary>
-        private readonly IMessageProcessService _messageProcessService;
+        private const string OgnConvertActorName = "OgnConvert";
 
         /// <summary>
         /// We need the data of this Listener in the Actors as the input source
@@ -38,9 +37,9 @@ namespace WebsocketGateway.Services.Ogn
         private readonly StreamListener _streamListener;
 
         /// <summary>
-        /// Current configuration that is needed to determine the number of workers to create
+        /// Is needed to create the actors based on the Props
         /// </summary>
-        private readonly GatewayConfiguration _gatewayConfiguration;
+        private readonly ActorPropsFactory _actorPropsFactory;
 
         /// <summary>
         /// Disposable Subscription that must exist during the lifetime of this service.
@@ -50,27 +49,26 @@ namespace WebsocketGateway.Services.Ogn
         /// <summary>
         /// The Akka.NET ActorSystem
         /// </summary>
-        private readonly ActorSystem _system;
+        private readonly ActorSystem _actorSystem;
 
-        public OgnActorControllerService(
-            AircraftProvider aircraftProvider,
-            IMessageProcessService messageProcessService,
+        /// <summary>
+        /// Current configuration
+        /// </summary>
+        private readonly GatewayConfiguration _gatewayConfiguration;
+
+        public ActorControlService(
             StreamListener streamListener,
+            ActorPropsFactory actorPropsFactory,
+            ActorSystem actorSystem,
             GatewayConfiguration gatewayConfiguration
         )
         {
-            _aircraftProvider = aircraftProvider ?? throw new ArgumentNullException(nameof(aircraftProvider));
-            _messageProcessService = messageProcessService
-                                     ?? throw new ArgumentNullException(nameof(messageProcessService));
             _streamListener = streamListener ?? throw new ArgumentNullException(nameof(streamListener));
+            _actorPropsFactory = actorPropsFactory
+                                 ?? throw new ArgumentNullException(nameof(actorPropsFactory));
+            _actorSystem = actorSystem ?? throw new ArgumentNullException(nameof(actorSystem));
             _gatewayConfiguration = gatewayConfiguration
                                     ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
-            _system = ActorSystem.Create(SystemName);
-
-            if (_gatewayConfiguration.Workers <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(_gatewayConfiguration.Workers));
-            }
         }
 
         /// <summary>
@@ -81,12 +79,25 @@ namespace WebsocketGateway.Services.Ogn
         /// <returns></returns>
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            var ognActorsProps = Props
-                .Create(() => new OgnActor(_system, _aircraftProvider, _messageProcessService))
-                .WithRouter(new SmallestMailboxPool(_gatewayConfiguration.Workers));
-            var ognActor = _system.ActorOf(ognActorsProps, OgnActor.Name);
+            _actorSystem
+                .ActorOf(_actorPropsFactory.CreatePublishActorProps(), PublishActorName);
+            var messageProcessActor = _actorSystem
+                .ActorOf(_actorPropsFactory.CreateMessageProcessActorProps(), MessageProcessActorName);
+            var ognActor = _actorSystem
+                .ActorOf(_actorPropsFactory.CreateOgnConvertActorProps(), OgnConvertActorName);
 
             _stream = _streamListener.Stream.Subscribe(message => ognActor.Tell(message));
+
+            if (_gatewayConfiguration.HasInterval())
+            {
+                _actorSystem.Scheduler.ScheduleTellRepeatedly(
+                    TimeSpan.Zero,
+                    TimeSpan.FromSeconds(_gatewayConfiguration.GetIntervalSeconds()),
+                    messageProcessActor,
+                    new DelayMessageProcessActor.PushMessages(),
+                    null
+                );
+            }
 
             return Task.CompletedTask;
         }
@@ -100,7 +111,7 @@ namespace WebsocketGateway.Services.Ogn
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _stream?.Dispose();
-            return _system.Terminate();
+            return _actorSystem.Terminate();
         }
     }
 }
