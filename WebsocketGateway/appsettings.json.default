@@ -1,0 +1,33 @@
+// Fill this file and save it as appsettings.json to get the WebsocketGateway to work!
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "GatewayOptions": {
+    "EventsOnly": false,        // If true, only events (aircraft started, landed or appeared) are sent to the clients.
+    "MinimalAltitude": 0,       // Minimal altitude (in m) at which the aircraft is seen as flying.
+    "MinimalSpeed": 0,          // Minimal speed (in km/h) at which the aircraft is seen as flying.
+    "Workers": 1,               // Number of workers ("Actors") that will be spawned. If you don't have performance issues, keep 1.
+    "IntervalSeconds": null,    // If set to a number, messages are sent to the clients only in intervals of _given_ seconds. This excludes events which are sent immediately!
+    "MaxAgeSeconds": 0          // When a client asks the latest aircraft data, this number is the highest age of the packet that will be returned.
+  },
+  "AprsConfig": {               // You don't need to fill out the config.json in OgnGateway if you use the WebsocketGateway. Just fill out this one.
+    {
+      "AprsPort": 0,            // Port of the APRS server.
+      "AprsUser": "",           // Username that is used to connect to the APRS server.
+      "AprsPassword": "",       // Password that is used to connect to the APRS server.
+      "AprsHost": "",           // Hostname / url of the APRS server.
+      "AircraftListUrl": "",    // Url of the ddb server from which the available aircraft are fetched.
+      "FilterPosition": {       // Position that will be listened to
+        "Latitude": 0,          // Latitude, format x.yyyy
+        "Longitude": 0          // Longitude, format xx.yyyyyy
+      },
+      "FilterRadius": 0         // Radius of the position that will be listened to
+    }
+  },
+  "Urls": "http://localhost:5000"
+}

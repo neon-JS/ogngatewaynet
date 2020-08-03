@@ -26,13 +26,13 @@ This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data /
 ## How to use
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
-- Fill out the _appsettings.json_.
+- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
 - Extend the solution with your code :D
 
 ## How to host
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
-- Fill out the _appsettings.json_.
+- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
 - Either build the _WebsocketGateway_ project or just run it.
 - Connect to the SignalR websocket with your frontend, application etc.
 
@@ -42,7 +42,8 @@ There are two methods which are used to communicate between server and client:
 - `NewData(FlightDataDto data): void`, which is sent from **server -> client** and contains the latest aircraft- /
    flight-data.
 - `InitialRequest(): FlightDataDto[]`, which is sent from **client -> server**. The result contains all latest aircraft
-   data of the last timespan (this timespan is configurable, see `GatewayOptions.MaxAgeSeconds` in _appsettings.json_).
+   data of the last timespan (this timespan is configurable, see `GatewayOptions.MaxAgeSeconds` in
+   _appsettings.json.default_).
 
 ## License
 This code is licensed under the MIT-License (see _LICENSE.md_).

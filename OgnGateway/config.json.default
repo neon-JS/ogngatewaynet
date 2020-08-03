@@ -1,12 +1,12 @@
 {
-  "AprsPort": 0,
-  "AprsUser": "",
-  "AprsPassword": "",
-  "AprsHost": "",
-  "AircraftListUrl": "",
-  "FilterPosition": {
-    "Latitude": 0,
-    "Longitude": 0 
+  "AprsPort": 0,              // Port of the APRS server.
+  "AprsUser": "",             // Username that is used to connect to the APRS server.
+  "AprsPassword": "",         // Password that is used to connect to the APRS server.
+  "AprsHost": "",             // Hostname / url of the APRS server.
+  "AircraftListUrl": "",      // Url of the ddb server from which the available aircraft are fetched.
+  "FilterPosition": {         // Position that will be listened to
+    "Latitude": 0,            // Latitude, format x.yyyy
+    "Longitude": 0            // Longitude, format xx.yyyyyy
   },
-  "FilterRadius": 0
+  "FilterRadius": 0           // Radius of the position that will be listened to
 }
