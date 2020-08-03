@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace OgnGateway.Ogn.Models
+namespace OgnGateway.Dtos
 {
     /// <summary>
     /// Representation of a position (aka "coordinates")

@@ -6,7 +6,7 @@ using WebsocketGateway.Actors;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Hubs;
 
-namespace WebsocketGateway.Services
+namespace WebsocketGateway.Providers
 {
     /// <summary>
     /// A provider that is used in the <see cref="DefaultHub"/> to give them the currently active

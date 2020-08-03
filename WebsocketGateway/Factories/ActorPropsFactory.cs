@@ -2,12 +2,12 @@ using System;
 using Akka.Actor;
 using Akka.Routing;
 using Microsoft.AspNetCore.SignalR;
-using OgnGateway.Ogn.Providers;
+using OgnGateway.Providers;
 using WebsocketGateway.Actors;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.Dtos;
 using WebsocketGateway.Hubs;
-using WebsocketGateway.Services;
+using WebsocketGateway.Providers;
 
 namespace WebsocketGateway.Factories
 {
@@ -32,11 +32,14 @@ namespace WebsocketGateway.Factories
         {
             _gatewayConfiguration = gatewayConfiguration
                                     ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
-            _actorSystem = actorSystem ?? throw new ArgumentNullException(nameof(actorSystem));
-            _aircraftProvider = aircraftProvider ?? throw new ArgumentNullException(nameof(aircraftProvider));
-            _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+            _actorSystem = actorSystem
+                           ?? throw new ArgumentNullException(nameof(actorSystem));
+            _aircraftProvider = aircraftProvider
+                                ?? throw new ArgumentNullException(nameof(aircraftProvider));
+            _hubContext = hubContext
+                          ?? throw new ArgumentNullException(nameof(hubContext));
             _latestDataProvider = latestDataProvider
-                                          ?? throw new ArgumentNullException(nameof(latestDataProvider));
+                                  ?? throw new ArgumentNullException(nameof(latestDataProvider));
         }
 
         /// <summary>
@@ -83,5 +86,5 @@ namespace WebsocketGateway.Factories
                 .Create(() => new PublishActor(_hubContext, _latestDataProvider))
                 .WithRouter(new SmallestMailboxPool(_gatewayConfiguration.Workers));
         }
-     }
+    }
 }

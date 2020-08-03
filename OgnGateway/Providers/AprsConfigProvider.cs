@@ -1,22 +1,23 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
+using OgnGateway.Dtos;
 
-namespace OgnGateway.Ogn.Config
+namespace OgnGateway.Providers
 {
     /// <summary>
-    /// ConfigLoader that provides the current configuration from config.json
+    /// Provides the current configuration from config.json
     /// </summary>
-    public class AprsConfigLoader
+    public class AprsConfigProvider
     {
         /// <summary>
         /// Path of the current configuration
         /// </summary>
         private readonly string _configPath;
 
-        public AprsConfigLoader()
+        public AprsConfigProvider()
         {
             var assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
                                ?? throw new NullReferenceException();

@@ -21,7 +21,7 @@
       "AprsUser": "",           // Username that is used to connect to the APRS server.
       "AprsPassword": "",       // Password that is used to connect to the APRS server.
       "AprsHost": "",           // Hostname / url of the APRS server.
-      "AircraftListUrl": "",    // Url of the ddb server from which the available aircraft are fetched.
+      "DdbAircraftListUrl": "", // Url of the ddb server from which the available aircraft are fetched.
       "FilterPosition": {       // Position that will be listened to
         "Latitude": 0,          // Latitude, format x.yyyy
         "Longitude": 0          // Longitude, format xx.yyyyyy

@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OgnGateway.Ogn.Config;
-using OgnGateway.Ogn.Providers;
-using OgnGateway.Ogn.Stream;
+using OgnGateway.Dtos;
+using OgnGateway.Providers;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Factories;
 using WebsocketGateway.Hubs;
+using WebsocketGateway.Providers;
 using WebsocketGateway.Services;
 
 namespace WebsocketGateway
@@ -36,6 +36,7 @@ namespace WebsocketGateway
 
             ConfigureConfigBasedServices(services);
 
+            services.AddSingleton<StreamProvider>();
             services.AddSingleton<LatestDataProvider>();
             services.AddSingleton(_ => ActorSystem.Create("WebsocketGateway"));
 
@@ -87,7 +88,6 @@ namespace WebsocketGateway
             Configuration.GetSection("AprsConfig").Bind(aprsConfig);
             services.AddSingleton(aprsConfig);
 
-            services.AddSingleton<StreamListener>();
             services.AddSingleton(_ =>
             {
                 var provider = new AircraftProvider(aprsConfig);

@@ -1,14 +1,14 @@
 using System;
 using System.Text.RegularExpressions;
-using OgnGateway.Extensions;
-using OgnGateway.Ogn.Models;
+using OgnGateway.Dtos;
+using OgnGateway.Extensions.Primitives;
 
-namespace OgnGateway.Ogn.Stream
+namespace OgnGateway.Services
 {
     /// <summary>
-    /// Converter for getting models from stream data
+    /// Converter for getting models from stream data messages
     /// </summary>
-    public static class StreamConverter
+    public static class StreamConversionService
     {
         /// <summary>
         /// Main pattern for getting all needed information from a raw stream-line.
@@ -128,13 +128,9 @@ namespace OgnGateway.Ogn.Stream
 
             var coordinateValue = (float) (degrees + minutes);
 
-            if (orientation.Equals("S") || orientation.Equals("W"))
-            {
-                // S/W are seen as negative!
-                coordinateValue *= -1;
-            }
-
-            return coordinateValue;
+            return orientation.Equals("S") || orientation.Equals("W")
+                ? coordinateValue * -1 // S/W are seen as negative!
+                : coordinateValue;
         }
     }
 }

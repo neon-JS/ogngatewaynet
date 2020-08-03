@@ -46,7 +46,8 @@ namespace WebsocketGateway.Actors
             GatewayConfiguration gatewayConfiguration
         )
         {
-            _actorSystem = actorSystem ?? throw new ArgumentNullException(nameof(actorSystem));
+            _actorSystem = actorSystem
+                           ?? throw new ArgumentNullException(nameof(actorSystem));
             _gatewayConfiguration = gatewayConfiguration
                                     ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
             _latestAircraftMessages = new Dictionary<string, FlightDataDto>();

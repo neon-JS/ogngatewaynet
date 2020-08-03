@@ -3,16 +3,15 @@ using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Reactive.Linq;
-using OgnGateway.Extensions;
-using OgnGateway.Ogn.Config;
+using OgnGateway.Dtos;
+using OgnGateway.Extensions.Primitives;
 
-namespace OgnGateway.Ogn.Stream
+namespace OgnGateway.Providers
 {
     /// <summary>
-    /// Listener that handles the connection to the OGN servers
-    /// and publishes messages to the system. 
+    /// Provider that listens to the APRS stream of the OGN servers and publishes messages to the system.
     /// </summary>
-    public class StreamListener
+    public class StreamProvider
     {
         /// <summary>
         /// Observable representing the data stream from the OGN servers
@@ -24,9 +23,10 @@ namespace OgnGateway.Ogn.Stream
         /// </summary>
         private readonly AprsConfig _aprsConfig;
 
-        public StreamListener(AprsConfig aprsConfig)
+        public StreamProvider(AprsConfig aprsConfig)
         {
-            _aprsConfig = aprsConfig ?? throw new ArgumentNullException(nameof(aprsConfig));
+            _aprsConfig = aprsConfig
+                          ?? throw new ArgumentNullException(nameof(aprsConfig));
             Stream = CreateStream();
         }
 

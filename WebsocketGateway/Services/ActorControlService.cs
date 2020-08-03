@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.Extensions.Hosting;
-using OgnGateway.Ogn.Stream;
+using OgnGateway.Providers;
 using WebsocketGateway.Actors;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.Dtos;
@@ -34,7 +34,7 @@ namespace WebsocketGateway.Services
         /// <summary>
         /// We need the data of this Listener in the Actors as the input source
         /// </summary>
-        private readonly StreamListener _streamListener;
+        private readonly StreamProvider _streamProvider;
 
         /// <summary>
         /// Is needed to create the actors based on the Props
@@ -57,16 +57,18 @@ namespace WebsocketGateway.Services
         private readonly GatewayConfiguration _gatewayConfiguration;
 
         public ActorControlService(
-            StreamListener streamListener,
+            StreamProvider streamProvider,
             ActorPropsFactory actorPropsFactory,
             ActorSystem actorSystem,
             GatewayConfiguration gatewayConfiguration
         )
         {
-            _streamListener = streamListener ?? throw new ArgumentNullException(nameof(streamListener));
+            _streamProvider = streamProvider
+                              ?? throw new ArgumentNullException(nameof(streamProvider));
             _actorPropsFactory = actorPropsFactory
                                  ?? throw new ArgumentNullException(nameof(actorPropsFactory));
-            _actorSystem = actorSystem ?? throw new ArgumentNullException(nameof(actorSystem));
+            _actorSystem = actorSystem
+                           ?? throw new ArgumentNullException(nameof(actorSystem));
             _gatewayConfiguration = gatewayConfiguration
                                     ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
         }
@@ -86,7 +88,7 @@ namespace WebsocketGateway.Services
             var ognActor = _actorSystem
                 .ActorOf(_actorPropsFactory.CreateOgnConvertActorProps(), OgnConvertActorName);
 
-            _stream = _streamListener.Stream.Subscribe(message => ognActor.Tell(message));
+            _stream = _streamProvider.Stream.Subscribe(message => ognActor.Tell(message));
 
             if (_gatewayConfiguration.HasInterval())
             {

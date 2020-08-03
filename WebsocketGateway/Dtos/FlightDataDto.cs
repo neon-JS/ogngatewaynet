@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using OgnGateway.Ogn.Models;
+using OgnGateway.Dtos;
 
 namespace WebsocketGateway.Dtos
 {

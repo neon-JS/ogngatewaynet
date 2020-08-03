@@ -1,8 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
-using OgnGateway.Extensions;
+using OgnGateway.Extensions.Primitives;
 
-namespace OgnGateway.Ogn.Models
+namespace OgnGateway.Dtos
 {
+    /// <summary>
+    /// Representation of an aircraft that published a message
+    /// </summary>
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class Aircraft
     {

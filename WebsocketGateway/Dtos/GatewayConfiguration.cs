@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace WebsocketGateway.Dtos
 {
     /// <summary>
     /// Configuration-object of the Gateway, set up by application.json
     /// </summary>
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class GatewayConfiguration
     {
         /// <summary>

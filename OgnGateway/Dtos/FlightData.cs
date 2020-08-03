@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using OgnGateway.Extensions;
+using OgnGateway.Extensions.Primitives;
 
-namespace OgnGateway.Ogn.Models
+namespace OgnGateway.Dtos
 {
     /// <summary>
     /// Representation of data that was received by the OGN live servers

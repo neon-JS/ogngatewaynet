@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 using WebsocketGateway.Dtos;
-using WebsocketGateway.Services;
+using WebsocketGateway.Providers;
 
 namespace WebsocketGateway.Hubs
 {
@@ -20,7 +20,7 @@ namespace WebsocketGateway.Hubs
         public DefaultHub(LatestDataProvider latestDataProvider)
         {
             _latestDataProvider = latestDataProvider
-                                          ?? throw new ArgumentNullException(nameof(latestDataProvider));
+                                  ?? throw new ArgumentNullException(nameof(latestDataProvider));
         }
 
         /// <summary>

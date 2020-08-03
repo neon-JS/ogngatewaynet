@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using OgnGateway.Ogn.Models;
 
-namespace OgnGateway.Ogn.Config
+namespace OgnGateway.Dtos
 {
     /// <summary>
     /// Representation of current configuration.
@@ -32,9 +31,9 @@ namespace OgnGateway.Ogn.Config
         public string AprsPassword { get; set; } = "";
 
         /// <summary>
-        /// Url that contains the list of all OGN-known aircraft
+        /// Url that contains the list of all OGN-known aircraft (OGN DDB)
         /// </summary>
-        public string AircraftListUrl { get; set; } = "";
+        public string DdbAircraftListUrl { get; set; } = "";
 
         /// <summary>
         /// Position that should be listened for

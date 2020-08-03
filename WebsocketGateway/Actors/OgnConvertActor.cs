@@ -1,8 +1,8 @@
 using System;
 using Akka.Actor;
-using OgnGateway.Ogn.Models;
-using OgnGateway.Ogn.Providers;
-using OgnGateway.Ogn.Stream;
+using OgnGateway.Dtos;
+using OgnGateway.Providers;
+using OgnGateway.Services;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Services;
 
@@ -28,7 +28,7 @@ namespace WebsocketGateway.Actors
             // When receiving the raw string from the listener, convert it to FlightData and pass it to the next Actor
             Receive<string>(message =>
             {
-                var convertedMessage = StreamConverter.ConvertData(message);
+                var convertedMessage = StreamConversionService.ConvertData(message);
                 if (convertedMessage == null)
                 {
                     // Ignore non-parseable messages

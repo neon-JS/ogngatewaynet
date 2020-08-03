@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using OgnGateway.Ogn.Config;
-using OgnGateway.Ogn.Providers;
-using OgnGateway.Ogn.Stream;
+using OgnGateway.Providers;
+using OgnGateway.Services;
 
 namespace OgnGateway
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
+    // ReSharper disable once ArrangeTypeModifiers
     class Program
     {
         // ReSharper disable once UnusedParameter.Local
@@ -17,18 +18,18 @@ namespace OgnGateway
 
         private static async Task Run()
         {
-            var configLoader = new AprsConfigLoader();
+            var configLoader = new AprsConfigProvider();
             var config = await configLoader.LoadAsync();
-            
-            var streamListener = new StreamListener(config);
+
+            var streamListener = new StreamProvider(config);
             var aircraftProvider = new AircraftProvider(config);
 
             await aircraftProvider.Initialize();
-            
+
             streamListener.Stream
-                .Subscribe( line =>
+                .Subscribe(line =>
                 {
-                    var result = StreamConverter.ConvertData(line);
+                    var result = StreamConversionService.ConvertData(line);
                     if (result != null)
                     {
                         Console.WriteLine(result);

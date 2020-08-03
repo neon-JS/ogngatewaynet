@@ -3,7 +3,7 @@ using Akka.Actor;
 using Microsoft.AspNetCore.SignalR;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Hubs;
-using WebsocketGateway.Services;
+using WebsocketGateway.Providers;
 
 namespace WebsocketGateway.Actors
 {
