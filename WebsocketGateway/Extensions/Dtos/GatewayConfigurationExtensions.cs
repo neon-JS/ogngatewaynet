@@ -3,6 +3,9 @@ using WebsocketGateway.Dtos;
 
 namespace WebsocketGateway.Extensions.Dtos
 {
+    /// <summary>
+    /// Class containing extension methods for the GatewayConfiguration
+    /// </summary>
     public static class GatewayConfigurationExtensions
     {
         /// <summary>

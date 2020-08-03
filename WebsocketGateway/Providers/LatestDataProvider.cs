@@ -4,6 +4,7 @@ using System.Linq;
 using Akka.Util.Internal;
 using WebsocketGateway.Actors;
 using WebsocketGateway.Dtos;
+using WebsocketGateway.Extensions.DateTime;
 using WebsocketGateway.Hubs;
 
 namespace WebsocketGateway.Providers
@@ -59,12 +60,10 @@ namespace WebsocketGateway.Providers
         /// </summary>
         private void CleanUpEntries()
         {
-            var maxAgeTime = DateTime.Now.Subtract(TimeSpan.FromSeconds(_gatewayConfiguration.MaxAgeSeconds));
-
             _activeFlightData
                 .ToList()
                 .Select(entry => entry.Value)
-                .Where(dto => dto.DateTime.CompareTo(maxAgeTime) == -1)
+                .Where(dto => dto.DateTime.AddSeconds(_gatewayConfiguration.MaxAgeSeconds).IsInPast())
                 .ForEach(dto => _activeFlightData.Remove(dto.Aircraft.Id));
         }
     }

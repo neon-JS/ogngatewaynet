@@ -4,6 +4,7 @@ using System.Linq;
 using Akka.Actor;
 using Akka.Util.Internal;
 using WebsocketGateway.Dtos;
+using WebsocketGateway.Extensions.DateTime;
 using WebsocketGateway.Services;
 
 namespace WebsocketGateway.Actors
@@ -66,7 +67,10 @@ namespace WebsocketGateway.Actors
                 var aircraftId = message.Aircraft.Id;
 
                 var isEvent = !_latestAircraftMessages.ContainsKey(aircraftId)
-                              || _latestAircraftMessages[aircraftId].IsFlying != message.IsFlying;
+                              || _latestAircraftMessages[aircraftId].IsFlying != message.IsFlying
+                              || _latestAircraftMessages[aircraftId].DateTime
+                                  .AddSeconds(_gatewayConfiguration.MaxAgeSeconds)
+                                  .IsInPast();
 
                 _latestAircraftMessages[aircraftId] = message;
 
