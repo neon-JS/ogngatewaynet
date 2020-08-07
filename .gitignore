@@ -9,3 +9,4 @@ WebsocketGateway/appsettings.json
 *.user
 *.js
 *.Development.json
+.DS_Store
