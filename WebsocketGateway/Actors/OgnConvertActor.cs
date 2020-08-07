@@ -52,7 +52,7 @@ namespace WebsocketGateway.Actors
                 var isFlying = message.Altitude >= gatewayConfiguration.MinimalAltitude
                                && message.Speed >= gatewayConfiguration.MinimalSpeed;
 
-                var convertedMessage = new FlightDataDto(message, aircraft, isFlying);
+                var convertedMessage = new FlightDataDto(message, new AircraftDto(aircraft), isFlying);
 
                 // Pass the convertedMessage to the IMessageProcessActor so it can be further processed.
                 actorSystem

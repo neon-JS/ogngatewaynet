@@ -9,66 +9,71 @@ namespace WebsocketGateway.Dtos
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class FlightDataDto
     {
         /// <summary>
         /// Current speed of the aircraft in km/h
         /// </summary>
-        public float Speed { get; }
+        public float Speed => _flightData.Speed;
 
         /// <summary>
         /// Current altitude of the aircraft in m
         /// </summary>
-        public float Altitude { get; }
+        public float Altitude => _flightData.Altitude;
 
         /// <summary>
         /// Current vertical speed of the aircraft in m/s
         /// </summary>
-        public float VerticalSpeed { get; }
+        public float VerticalSpeed => _flightData.VerticalSpeed;
 
         /// <summary>
         /// Current turn rate of the aircraft in turns/min
         /// </summary>
-        public float TurnRate { get; }
+        public float TurnRate => _flightData.TurnRate;
 
         /// <summary>
         /// Current course of the aircraft
         /// </summary>
-        public float Course { get; }
+        public float Course => _flightData.Course;
 
         /// <summary>
         /// Current position of the aircraft
         /// </summary>
-        public Position Position { get; }
+        public Position Position => _flightData.Position;
 
         /// <summary>
         /// DateTime of when the message was received
         /// </summary>
-        public DateTime DateTime { get; }
+        public DateTime DateTime => _flightData.DateTime;
 
         /// <summary>
         /// Aircraft data
         /// </summary>
-        public Aircraft Aircraft { get; }
+        public AircraftDto Aircraft { get; }
 
         /// <summary>
         /// Determines whether the aircraft is currently flying or not, based on the current configuration
         /// </summary>
         public bool IsFlying { get; }
 
-        public FlightDataDto(FlightData flightData, Aircraft aircraft, bool isFlying)
-        {
-            if (flightData == null) throw new ArgumentNullException(nameof(flightData));
+        /// <summary>
+        /// Flight-data to wrap
+        /// </summary>
+        private readonly FlightData _flightData;
 
+        public FlightDataDto(FlightData flightData, AircraftDto aircraft, bool isFlying)
+        {
+            _flightData = flightData ?? throw new ArgumentNullException(nameof(flightData));
             Aircraft = aircraft ?? throw new ArgumentNullException(nameof(aircraft));
-            Speed = flightData.Speed;
-            Altitude = flightData.Altitude;
-            VerticalSpeed = flightData.VerticalSpeed;
-            TurnRate = flightData.TurnRate;
-            Course = flightData.Course;
-            Position = flightData.Position;
-            DateTime = flightData.DateTime;
             IsFlying = isFlying;
+        }
+
+        public override string ToString()
+        {
+            return
+                $"[Update]\n\tAircraft-ID: {Aircraft.Id}\n\taltitude: {Altitude}\n\tspeed: {Speed}\n\tvertical-speed: {VerticalSpeed}"
+                + $"\n\tturn-rate: {TurnRate}\n\tcourse: {Course}\n\tdatetime: {DateTime}\n\tposition: {Position}";
         }
     }
 }
