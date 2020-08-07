@@ -142,7 +142,14 @@
             </div>
         </div>
         <div v-if="showFrame === true" id="frame-container">
-            <iframe name="frame" allowfullscreen :src="iframeSrc"></iframe>
+            <iframe name="frame" allowfullscreen :src="getIframeSrc()"></iframe>
+        </div>
+        <div class="container overflow-auto">
+            Beobachtetes Gebiet: {{ convertCoordinateToReadable(configuration.filterPosition.latitude, true) }},
+            {{ convertCoordinateToReadable(configuration.filterPosition.longitude, false) }}<br>
+            Beobachtungsradius: {{configuration.filterRadius}} km<br>
+            Aktualisierungszeitraum: {{configuration.intervalSeconds ? 'Alle ' + configuration.intervalSeconds + ' Sekunden' : 'Ohne Verzögerung'}}
+            {{configuration.eventsOnly ? 'nur für Ereignisse' : ''}}
         </div>
     </div>
 </div>
@@ -161,7 +168,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.3/signalr.min.js"></script>
 <script>
     const SOCKET_URL = window.location.href.match(/(\w+:\/\/.*\/)(.+\.\w+)?/)[0] + "websocket";
-    const MAX_AGE_SECONDS = 60;
+    let configuration = {
+        maxAgeSeconds: Infinity,
+        eventsOnly: false,
+        intervalSeconds: 0,
+        filterPosition: {
+            latitude: 0,
+            longitude: 0
+        },
+        filterRadius: 0
+    };
 
     // noinspection JSUnresolvedFunction
     let app = new Vue({
@@ -171,31 +187,10 @@
                 data: [],
                 hasNotificationPermission: Notification && Notification.permission === 'granted',
                 showFrame: false,
-                iframeSrc: 'https://live.glidernet.org/#c=51.74896,6.15643&z=12&s=1'
+                iframeSrc: null
             }
         },
-        mounted() {
-            // noinspection JSUndeclaredVariable
-            /**
-             * Requests permission to send Notifications
-             */
-            requestNotificationPermissions = () => {
-                Notification.requestPermission(permission => this.$nextTick(() => this.hasNotificationPermission = permission === 'granted'));
-            }
-
-            // noinspection JSUndeclaredVariable
-            /**
-             * Sends a notification with given information
-             * @param title string Title of the notification
-             * @param message string Message of the notification
-             * @param icon string Icon of the message
-             */
-            sendNotification = (title, message, icon) => {
-                if (this.hasNotificationPermission) {
-                    return new Notification(title, {body: message, icon})
-                }
-            }
-
+        created() {
             // noinspection JSUndeclaredVariable
             /**
              * Converts given coordinate (given as number) to a readable format
@@ -229,6 +224,42 @@
 
                 return `${degrees}° ${minutes.toString().padStart(2, '0')}' ${seconds.toString().padStart(2, '0')}" ${direction}`;
             };
+        },
+
+        mounted() {
+            // noinspection JSUndeclaredVariable
+            /**
+             * Returns the iframe-src for the gliderradar-frame
+             * @returns string
+             */
+            getIframeSrc = () => {
+                if (!this.iframeSrc) {
+                    this.iframeSrc = 'https://live.glidernet.org/#c=' + configuration.filterPosition.latitude + ',' + configuration.filterPosition.longitude + '&z=12&s=1';
+                }
+                return this.iframeSrc;
+            };
+
+
+            // noinspection JSUndeclaredVariable
+            /**
+             * Requests permission to send Notifications
+             */
+            requestNotificationPermissions = () => {
+                Notification.requestPermission(permission => this.$nextTick(() => this.hasNotificationPermission = permission === 'granted'));
+            }
+
+            // noinspection JSUndeclaredVariable
+            /**
+             * Sends a notification with given information
+             * @param title string Title of the notification
+             * @param message string Message of the notification
+             * @param icon string Icon of the message
+             */
+            sendNotification = (title, message, icon) => {
+                if (this.hasNotificationPermission) {
+                    return new Notification(title, {body: message, icon})
+                }
+            }
 
             // noinspection JSUndeclaredVariable
             /**
@@ -256,6 +287,14 @@
                 entries.forEach(e => handleMessage(e, false));
                 sortEntries();
             }
+
+            // noinspection JSUndeclaredVariable
+            /**
+             * Handles configuration-update
+             */
+            handleConfigurationData = (config) => {
+                configuration = Object.assign(configuration, config);
+            };
 
             // noinspection JSUndeclaredVariable
             /**
@@ -317,7 +356,7 @@
                         if (!entry1.isFlying && entry2.isFlying) return 1;
                         return 0;
                     })
-                    .filter((entry) => (((new Date()).valueOf() - entry.dateTime.valueOf()) / 1000) <= MAX_AGE_SECONDS);
+                    .filter((entry) => (((new Date()).valueOf() - new Date(entry.dateTime).valueOf()) / 1000) <= configuration.maxAgeSeconds);
             }
 
             // noinspection JSUndeclaredVariable
@@ -347,6 +386,8 @@
                 connection.onclose(async () => await start());
 
                 await start()
+                    .then(_ => connection.invoke("GetConfiguration"))
+                    .then(handleConfigurationData)
                     .then(_ => connection.invoke("GetCurrentlyActiveFlightData"))
                     .then(handleInitialData);
             }

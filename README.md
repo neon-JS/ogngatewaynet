@@ -44,6 +44,8 @@ There are two methods which are used to communicate between server and client:
 - `InitialRequest(): FlightDataDto[]`, which is sent from **client -> server**. The result contains all latest aircraft
    data of the last timespan (this timespan is configurable, see `GatewayOptions.MaxAgeSeconds` in
    _appsettings.json.default_).
+- `GetConfiguration(): {MaxAgeSeconds, EventsOnly, IntervalSeconds, FilterPosition, FilterRadius}`, which is sent from 
+   **client -> server**. The result contains some information about the server-configuration. 
 
 ## License
 This code is licensed under the MIT-License (see _LICENSE.md_).

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
+using OgnGateway.Dtos;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Providers;
 
@@ -17,10 +18,28 @@ namespace WebsocketGateway.Hubs
         /// </summary>
         private readonly LatestDataProvider _latestDataProvider;
 
-        public DefaultHub(LatestDataProvider latestDataProvider)
+        /// <summary>
+        /// Our current configuration
+        /// </summary>
+        private readonly GatewayConfiguration _gatewayConfiguration;
+
+        /// <summary>
+        /// APRS-config containing the filter radius & position
+        /// </summary>
+        private readonly AprsConfig _aprsConfig;
+
+        public DefaultHub(
+            LatestDataProvider latestDataProvider,
+            GatewayConfiguration gatewayConfiguration,
+            AprsConfig aprsConfig
+            )
         {
             _latestDataProvider = latestDataProvider
                                   ?? throw new ArgumentNullException(nameof(latestDataProvider));
+            _gatewayConfiguration = gatewayConfiguration
+                                    ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
+            _aprsConfig = aprsConfig
+                          ?? throw new ArgumentNullException(nameof(aprsConfig));
         }
 
         /// <summary>
@@ -32,6 +51,23 @@ namespace WebsocketGateway.Hubs
         public IReadOnlyList<FlightDataDto> GetCurrentlyActiveFlightData()
         {
             return _latestDataProvider.GetLatestData();
+        }
+
+        /// <summary>
+        /// Returns the current configuration of the system
+        /// </summary>
+        /// <returns>object</returns>
+        // ReSharper disable once UnusedMember.Global
+        public object GetConfiguration()
+        {
+            return new
+            {
+                _gatewayConfiguration.MaxAgeSeconds,
+                _gatewayConfiguration.EventsOnly,
+                _gatewayConfiguration.IntervalSeconds,
+                _aprsConfig.FilterPosition,
+                _aprsConfig.FilterRadius
+            };
         }
     }
 }
