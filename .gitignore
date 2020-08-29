@@ -7,6 +7,5 @@ riderModule.iml
 config.json
 WebsocketGateway/appsettings.json
 *.user
-*.js
 *.Development.json
 .DS_Store

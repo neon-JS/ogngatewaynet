@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Gliderradar LIVE (EDLG)</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="apple-touch-icon" sizes="180x180" href="/niklas/gliderradar/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/niklas/gliderradar/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/niklas/gliderradar/favicon-16x16.png">
-    <link rel="manifest" href="/niklas/gliderradar/site.webmanifest">
-    <link rel="mask-icon" href="/niklas/gliderradar/safari-pinned-tab.svg" color="#ff4444">
-    <link rel="shortcut icon" href="/niklas/gliderradar/favicon.ico">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" href="safari-pinned-tab.svg" color="#ff4444">
+    <link rel="shortcut icon" href="favicon.ico">
     <meta name="msapplication-TileColor" content="#b91d47">
-    <meta name="msapplication-config" content="/niklas/gliderradar/browserconfig.xml">
+    <meta name="msapplication-config" content="browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
     <style>
         iframe {
@@ -163,9 +163,8 @@
         Thanks to the <a href="http://wiki.glidernet.org/">Open Glider Network</a> for your data and documentation!
     </div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.3/signalr.min.js"></script>
+<script src="vue.min.js"></script>
+<script src="signalr.min.js"></script>
 <script>
     const SOCKET_URL = window.location.href.match(/(\w+:\/\/.*\/)(.+\.\w+)?/)[0] + "websocket";
     let configuration = {
@@ -185,7 +184,7 @@
         data() {
             return {
                 data: [],
-                hasNotificationPermission: Notification && Notification.permission === 'granted',
+                hasNotificationPermission: window.Notification && Notification.permission === 'granted',
                 showFrame: false,
                 iframeSrc: null
             }
@@ -234,7 +233,7 @@
              */
             getIframeSrc = () => {
                 if (!this.iframeSrc) {
-                    this.iframeSrc = 'https://live.glidernet.org/#c=' + configuration.filterPosition.latitude + ',' + configuration.filterPosition.longitude + '&z=12&s=1';
+                    this.iframeSrc = 'https://live.glidernet.org/#c=' + configuration.filterPosition.latitude + ',' + configuration.filterPosition.longitude + '&z=12&s=1&m=4';
                 }
                 return this.iframeSrc;
             };
@@ -271,7 +270,7 @@
                 // HACKY workaround, the frame won't reload if only the anchor changes, so blank out the page and reassign it to force reload
                 this.$nextTick(() => this.iframeSrc = "about:blank");
                 setTimeout(() => this.$nextTick(() => {
-                    this.iframeSrc = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1`;
+                    this.iframeSrc = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1&m=4`;
                     if (!this.showFrame) {
                         this.showFrame = true;
                     }
