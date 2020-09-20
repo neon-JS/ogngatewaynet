@@ -16,18 +16,16 @@
     "MaxAgeSeconds": 0          // When a client asks the latest aircraft data, this number is the highest age of the packet that will be returned.
   },
   "AprsConfig": {               // You don't need to fill out the config.json in OgnGateway if you use the WebsocketGateway. Just fill out this one.
-    {
-      "AprsPort": 0,            // Port of the APRS server.
-      "AprsUser": "",           // Username that is used to connect to the APRS server.
-      "AprsPassword": "",       // Password that is used to connect to the APRS server.
-      "AprsHost": "",           // Hostname / url of the APRS server.
-      "DdbAircraftListUrl": "", // Url of the ddb server from which the available aircraft are fetched.
-      "FilterPosition": {       // Position that will be listened to
-        "Latitude": 0,          // Latitude, format x.yyyy
-        "Longitude": 0          // Longitude, format xx.yyyyyy
-      },
-      "FilterRadius": 0         // Radius of the position that will be listened to
-    }
+    "AprsPort": 0,              // Port of the APRS server.
+    "AprsUser": "",             // Username that is used to connect to the APRS server.
+    "AprsPassword": "",         // Password that is used to connect to the APRS server.
+    "AprsHost": "",             // Hostname / url of the APRS server.
+    "DdbAircraftListUrl": "",   // Url of the ddb server from which the available aircraft are fetched.
+    "FilterPosition": {         // Position that will be listened to
+      "Latitude": 0,            // Latitude, format x.yyyy
+      "Longitude": 0            // Longitude, format xx.yyyyyy
+    },
+    "FilterRadius": 0           // Radius (in km) of the position that will be listened to
   },
   "Urls": "http://localhost:5000"
 }
