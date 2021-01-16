@@ -15,8 +15,6 @@ namespace WebsocketGateway.Extensions.DateTime
         /// <exception cref="ArgumentNullException">when DateTime is null</exception>
         public static bool IsInPast(this System.DateTime dateTime)
         {
-            if (dateTime == null) throw new ArgumentNullException(nameof(dateTime));
-
             return dateTime.CompareTo(System.DateTime.Now) == -1;
         }
     }
