@@ -32,7 +32,7 @@ namespace OgnGateway.Providers
         {
             return await JsonSerializer.DeserializeAsync<AprsConfig>(
                 new FileStream(_configPath, FileMode.Open, FileAccess.Read)
-            );
+            ) ?? throw new InvalidDataException("No valid AprsConfig found!");
         }
     }
 }
