@@ -1,4 +1,7 @@
 # OgnGateway.NET
+![.NET Build status](https://github.com/neon-JS/ogngatewaynet/workflows/.NET/badge.svg)
+![CodeQL status](https://github.com/neon-JS/ogngatewaynet/workflows/CodeQL/badge.svg)
+
 A simple gateway for OGN-data which feeds (SignalR-) websockets.
 This gateway listens to the APRS-servers of the OpenGliderNetwork and parses & passes the received messages to all
 connected clients. It is configurable so that certain events (see below) will trigger an immediately message while the
