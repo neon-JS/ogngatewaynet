@@ -38,6 +38,14 @@
             height: 1.1em;
             vertical-align: sub;
         }
+
+        .card:nth-of-type(2) {
+            margin: 0 0 0 1%;
+        }
+
+        .header {
+            margin: 3% 0;
+        }
     </style>
 </head>
 <body>
@@ -45,7 +53,7 @@
     <nav class="navbar navbar-dark bg-dark">
         <span class="navbar-brand mb-0 h1">&nbsp;</span>
     </nav>
-    <div class="jumbotron jumbotron-fluid">
+    <div class="header">
         <div class="container">
             <h1 class="display-4"><img src="android-chrome-192x192.png" class="header-image" alt="Logo"> Gliderradar LIVE (EDLG)</h1>
             <p class="lead">Aktuell aktive Flugzeuge (mit FLARM) in Kleve und Asperden</p>
@@ -120,7 +128,7 @@
     <br>
     <div class="container">
         <div class="d-flex flex-row bd-highlight mb-3 align-items-stretch">
-            <div class="card mr-2">
+            <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Live-Map</h5>
                     <p class="card-text">Zeigt eine eingebettete Live-Map (bereitgestellt von <a
@@ -131,7 +139,7 @@
                     </a>
                 </div>
             </div>
-            <div class="card ml-2">
+            <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Open Glider Network</h5>
                     <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie eine
@@ -155,28 +163,15 @@
 </div>
 <footer class="page-footer font-small blue">
     <div class="footer-copyright text-center py-3">
-        2019 - 2020, Niklas Schmidt<br>
-       <!--
-            The code is currently WIP and therefore hasn't been published yet!
-            But I'll release it on my Gitlab (https://gitlab.com/neon-js) later, licensed under the MIT-license.
-        -->
-        Thanks to the <a href="http://wiki.glidernet.org/">Open Glider Network</a> for your data and documentation!
+        2019 - 2021, Niklas Schmidt<br>
+        Sources available on <a href="https://github.com/neon-JS/ogngatewaynet" target="_blank">Github</a><br>
+        Thanks to the <a href="http://wiki.glidernet.org/" target="_blank">Open Glider Network</a> for your data and documentation!
     </div>
 </footer>
 <script src="vue.min.js"></script>
 <script src="signalr.min.js"></script>
 <script>
-    const SOCKET_URL = window.location.href.match(/(\w+:\/\/.*\/)(.+\.\w+)?/)[0] + "websocket";
-    let configuration = {
-        maxAgeSeconds: Infinity,
-        eventsOnly: false,
-        intervalSeconds: 0,
-        filterPosition: {
-            latitude: 0,
-            longitude: 0
-        },
-        filterRadius: 0
-    };
+    const HOST = 'https://mitarbeiterserver.traperto-hosting.com/niklas/gliderradar';
 
     // noinspection JSUnresolvedFunction
     let app = new Vue({
@@ -186,7 +181,17 @@
                 data: [],
                 hasNotificationPermission: window.Notification && Notification.permission === 'granted',
                 showFrame: false,
-                iframeSrc: null
+                iframeSrc: null,
+                configuration: {
+                    maxAgeSeconds: Infinity,
+                    eventsOnly: false,
+                    intervalSeconds: 0,
+                    filterPosition: {
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    filterRadius: 0
+                }
             }
         },
         created() {
@@ -233,7 +238,7 @@
              */
             getIframeSrc = () => {
                 if (!this.iframeSrc) {
-                    this.iframeSrc = 'https://live.glidernet.org/#c=' + configuration.filterPosition.latitude + ',' + configuration.filterPosition.longitude + '&z=12&s=1&m=4';
+                    this.iframeSrc = `https://live.glidernet.org/#c=${this.configuration.filterPosition.latitude},${this.configuration.filterPosition.longitude}&z=12&s=1`;
                 }
                 return this.iframeSrc;
             };
@@ -268,32 +273,14 @@
              */
             updateFrameCoordinates = (latitude, longitude) => {
                 // HACKY workaround, the frame won't reload if only the anchor changes, so blank out the page and reassign it to force reload
-                this.$nextTick(() => this.iframeSrc = "about:blank");
+                this.$nextTick(() => this.iframeSrc = 'about:blank');
                 setTimeout(() => this.$nextTick(() => {
-                    this.iframeSrc = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1&m=4`;
+                    this.iframeSrc = `https://live.glidernet.org/#c=${latitude},${longitude}&z=17&s=1`;
                     if (!this.showFrame) {
                         this.showFrame = true;
                     }
                 }), 10);
             }
-
-            // noinspection JSUndeclaredVariable
-            /**
-             * Handles initial data to show in list
-             * @param entries object[] The initial objects to add
-             */
-            handleInitialData = (entries) => {
-                entries.forEach(e => handleMessage(e, false));
-                sortEntries();
-            }
-
-            // noinspection JSUndeclaredVariable
-            /**
-             * Handles configuration-update
-             */
-            handleConfigurationData = (config) => {
-                configuration = Object.assign(configuration, config);
-            };
 
             // noinspection JSUndeclaredVariable
             /**
@@ -355,7 +342,7 @@
                         if (!entry1.isFlying && entry2.isFlying) return 1;
                         return 0;
                     })
-                    .filter((entry) => (((new Date()).valueOf() - new Date(entry.dateTime).valueOf()) / 1000) <= configuration.maxAgeSeconds);
+                    .filter((entry) => (((new Date()).valueOf() - new Date(entry.dateTime).valueOf()) / 1000) <= this.configuration.maxAgeSeconds);
             }
 
             // noinspection JSUndeclaredVariable
@@ -366,7 +353,7 @@
             connect = async () => {
                 // noinspection JSUnresolvedVariable,JSUnresolvedFunction
                 const connection = new signalR.HubConnectionBuilder()
-                    .withUrl(SOCKET_URL)
+                    .withUrl(`${HOST}/websocket`)
                     .configureLogging(signalR.LogLevel.Information)
                     .build();
 
@@ -375,20 +362,25 @@
                         connection.start()
                             .then(resolve)
                             .catch((error) => {
-                                console.error("Could not connect to SignalR socket. Retrying in 5 seconds.", error);
+                                console.error('Could not connect to SignalR socket. Retrying in 5 seconds.', error);
                                 setTimeout(() => start().then(resolve), 5000);
                             });
                     });
                 }
 
-                connection.on("NewData", handleMessage);
+                connection.on('NewData', handleMessage);
                 connection.onclose(async () => await start());
 
-                await start()
-                    .then(_ => connection.invoke("GetConfiguration"))
-                    .then(handleConfigurationData)
-                    .then(_ => connection.invoke("GetCurrentlyActiveFlightData"))
-                    .then(handleInitialData);
+                fetch(`${HOST}/api/current`)
+                    .then(b => b.json())
+                    .then(data => {
+                        data.forEach(e => handleMessage(e, false));
+                        sortEntries();
+                    });
+
+                fetch(`${HOST}/api/config`)
+                    .then(b => b.json())
+                    .then(config => this.configuration = config);
             }
         }
     });
