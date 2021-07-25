@@ -82,8 +82,7 @@ namespace OgnGateway.Services
                 verticalSpeed,
                 turnRate,
                 course,
-                latitude,
-                longitude,
+                new Position(latitude, longitude),
                 DateTime.Now
             );
         }
@@ -114,7 +113,7 @@ namespace OgnGateway.Services
              */
             var rawValue = collection[index].Value;
 
-            var numericValue = System.Convert.ToDouble(Regex.Replace(rawValue, CoordinateReplacePattern, ""));
+            var numericValue = System.Convert.ToDouble(Regex.Replace(rawValue, CoordinateReplacePattern, string.Empty));
             var orientation = rawValue[^1..];
 
             var degrees = Math.Floor(numericValue / 1_0000); // Separating   "dd" from "ddmmmm"

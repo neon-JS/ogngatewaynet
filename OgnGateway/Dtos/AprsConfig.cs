@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using System;
 
 namespace OgnGateway.Dtos
 {
@@ -6,43 +6,41 @@ namespace OgnGateway.Dtos
     /// Representation of current configuration.
     /// Will automatically instantiated by the ConfigProvider
     /// </summary>
-    [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class AprsConfig
+    public record AprsConfig
     {
         /// <summary>
         /// APRS host that the listener should connect to
         /// </summary>
-        public string AprsHost { get; set; } = "";
+        public string AprsHost { get; init; } = string.Empty;
 
         /// <summary>
         /// APRS port that the listener should connect to
         /// </summary>
-        public int AprsPort { get; set; } = 0;
+        public int AprsPort { get; init; }
 
         /// <summary>
         /// Username that will be used while authenticating to the APRS server
         /// </summary>
-        public string AprsUser { get; set; } = "";
+        public string AprsUser { get; init; } = string.Empty;
 
         /// <summary>
         /// Password that will be used while authenticating to the APRS server
         /// </summary>
-        public string AprsPassword { get; set; } = "";
+        public string AprsPassword { get; init; } = string.Empty;
 
         /// <summary>
         /// Url that contains the list of all OGN-known aircraft (OGN DDB)
         /// </summary>
-        public string DdbAircraftListUrl { get; set; } = "";
+        public string DdbAircraftListUrl { get; init; } = string.Empty;
 
         /// <summary>
         /// Position that should be listened for
         /// </summary>
-        public Position FilterPosition { get; set; } = new Position();
+        public Position FilterPosition { get; init; } = new(0, 0);
 
         /// <summary>
         /// Radius around the FilterPosition that should be listened for in km.
         /// </summary>
-        public int FilterRadius { get; set; } = 0;
+        public int FilterRadius { get; init; }
     }
 }
