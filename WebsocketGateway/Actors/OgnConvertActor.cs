@@ -15,7 +15,7 @@ namespace WebsocketGateway.Actors
     public class OgnConvertActor : ReceiveActor
     {
         public OgnConvertActor(
-            ActorSystem actorSystem,
+            IActorRefFactory actorSystem,
             AircraftProvider aircraftProvider,
             GatewayConfiguration gatewayConfiguration
         )
@@ -38,16 +38,26 @@ namespace WebsocketGateway.Actors
             Receive<FlightData>(message =>
             {
                 var aircraft = aircraftProvider.Load(message.AircraftId);
-                if (!aircraft.IsVisible)
+                if (!aircraft.Visible)
                 {
                     // The aircraft should not be visible, therefore drop the message.
                     return;
                 }
 
-                var isFlying = message.Altitude >= gatewayConfiguration.MinimalAltitude
-                               && message.Speed >= gatewayConfiguration.MinimalSpeed;
+                var flying = message.Altitude >= gatewayConfiguration.MinimalAltitude
+                             && message.Speed >= gatewayConfiguration.MinimalSpeed;
 
-                var convertedMessage = new FlightDataDto(message, new AircraftDto(aircraft), isFlying);
+                var convertedMessage = new FlightDataDto(
+                    message.Speed,
+                    message.Altitude,
+                    message.VerticalSpeed,
+                    message.TurnRate,
+                    message.Course,
+                    message.Position,
+                    message.DateTime,
+                    new AircraftDto(aircraft),
+                    flying
+                );
 
                 // Pass the convertedMessage to the IMessageProcessActor so it can be further processed.
                 actorSystem

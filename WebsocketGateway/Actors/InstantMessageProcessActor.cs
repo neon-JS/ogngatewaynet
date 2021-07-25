@@ -48,7 +48,7 @@ namespace WebsocketGateway.Actors
                 var aircraftId = message.Aircraft.Id;
 
                 var isEvent = !_latestAircraftMessages.ContainsKey(aircraftId)
-                              || _latestAircraftMessages[aircraftId].IsFlying != message.IsFlying
+                              || _latestAircraftMessages[aircraftId].Flying != message.Flying
                               || _latestAircraftMessages[aircraftId].DateTime
                                   .AddSeconds(_gatewayConfiguration.MaxAgeSeconds)
                                   .IsInPast();
