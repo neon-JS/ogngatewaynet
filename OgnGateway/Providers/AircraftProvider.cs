@@ -13,6 +13,19 @@ namespace OgnGateway.Providers
     /// </summary>
     public class AircraftProvider
     {
+        private const string ValueYes = "Y";
+        private const string FieldEnclosure = "'";
+        private const char FieldSeparator = ',';
+        private const char IdentifierComment = '#';
+        private const char LineBreak = '\n';
+
+        private const int IndexAircraftId = 1;
+        private const int IndexType = 2;
+        private const int IndexRegistration = 3;
+        private const int IndexCallSign = 4;
+        private const int IndexTracked = 5;
+        private const int IndexIdentified = 6;
+
         /// <summary>
         /// Current configuration as it contains the url that should be called
         /// </summary>
@@ -66,18 +79,20 @@ namespace OgnGateway.Providers
             var content = await response.Content.ReadAsStringAsync();
 
             var insertResult = content
-                .Replace("'", "")
-                .Split('\n')
-                .ToList()
-                .Where(line => !line.StartsWith('#'))
-                .Select(line => line.Split(','))
-                .Where(values => values.Length >= 7)
-                .Select(values =>
-                {
-                    //              tracked (Y/N)            identified (Y/N)
-                    var isVisible = values[5].Equals("Y") && values[6].Trim().Equals("Y");
-                    return new Aircraft(values[1], values[4], values[3], values[2], isVisible);
-                })
+                .Replace(FieldEnclosure, string.Empty)
+                .Split(LineBreak)
+                .Where(line => !line.StartsWith(IdentifierComment))
+                .Select(line => line.Split(FieldSeparator))
+                .Select(values => values.Select(v => v.Trim()).ToList())
+                .Where(values => values.Count >= 7)
+                .Where(values => !string.IsNullOrWhiteSpace(values[IndexAircraftId]))
+                .Select(values => new Aircraft(
+                    values[IndexAircraftId],
+                    values[IndexCallSign],
+                    values[IndexRegistration],
+                    values[IndexType],
+                    values[IndexTracked].Equals(ValueYes) && values[IndexIdentified].Equals(ValueYes)
+                ))
                 .All(aircraft => _aircraftList.TryAdd(aircraft.Id, aircraft));
 
             if (!insertResult)
