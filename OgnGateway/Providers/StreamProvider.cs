@@ -25,8 +25,7 @@ namespace OgnGateway.Providers
 
         public StreamProvider(AprsConfig aprsConfig)
         {
-            _aprsConfig = aprsConfig
-                          ?? throw new ArgumentNullException(nameof(aprsConfig));
+            _aprsConfig = aprsConfig;
             Stream = CreateStream();
         }
 

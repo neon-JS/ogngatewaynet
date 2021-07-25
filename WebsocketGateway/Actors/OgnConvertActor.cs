@@ -1,4 +1,3 @@
-using System;
 using Akka.Actor;
 using OgnGateway.Dtos;
 using OgnGateway.Providers;
@@ -21,10 +20,6 @@ namespace WebsocketGateway.Actors
             GatewayConfiguration gatewayConfiguration
         )
         {
-            if (actorSystem == null) throw new ArgumentNullException(nameof(actorSystem));
-            if (aircraftProvider == null) throw new ArgumentNullException(nameof(aircraftProvider));
-            if (gatewayConfiguration == null) throw new ArgumentNullException(nameof(gatewayConfiguration));
-
             // When receiving the raw string from the listener, convert it to FlightData and pass it to the next Actor
             Receive<string>(message =>
             {

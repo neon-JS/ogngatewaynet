@@ -16,8 +16,6 @@ namespace WebsocketGateway.Extensions.Dtos
         /// <exception cref="ArgumentNullException">if given configuration is null</exception>
         public static bool HasInterval(this GatewayConfiguration configuration)
         {
-            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-
             return configuration.IntervalSeconds != null && configuration.IntervalSeconds != 0;
         }
 
@@ -29,8 +27,6 @@ namespace WebsocketGateway.Extensions.Dtos
         /// <exception cref="ArgumentNullException">if given configuration or IntervalSeconds is null</exception>
         public static int GetIntervalSeconds(this GatewayConfiguration configuration)
         {
-            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-
             return configuration.IntervalSeconds
                    ?? throw new ArgumentNullException(nameof(configuration.IntervalSeconds));
         }

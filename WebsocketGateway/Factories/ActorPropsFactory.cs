@@ -30,16 +30,11 @@ namespace WebsocketGateway.Factories
             LatestDataProvider latestDataProvider
         )
         {
-            _gatewayConfiguration = gatewayConfiguration
-                                    ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
-            _actorSystem = actorSystem
-                           ?? throw new ArgumentNullException(nameof(actorSystem));
-            _aircraftProvider = aircraftProvider
-                                ?? throw new ArgumentNullException(nameof(aircraftProvider));
-            _hubContext = hubContext
-                          ?? throw new ArgumentNullException(nameof(hubContext));
-            _latestDataProvider = latestDataProvider
-                                  ?? throw new ArgumentNullException(nameof(latestDataProvider));
+            _gatewayConfiguration = gatewayConfiguration;
+            _actorSystem = actorSystem;
+            _aircraftProvider = aircraftProvider;
+            _hubContext = hubContext;
+            _latestDataProvider = latestDataProvider;
         }
 
         /// <summary>

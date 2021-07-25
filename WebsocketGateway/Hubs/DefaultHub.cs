@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 using OgnGateway.Dtos;
@@ -34,12 +33,9 @@ namespace WebsocketGateway.Hubs
             AprsConfig aprsConfig
             )
         {
-            _latestDataProvider = latestDataProvider
-                                  ?? throw new ArgumentNullException(nameof(latestDataProvider));
-            _gatewayConfiguration = gatewayConfiguration
-                                    ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
-            _aprsConfig = aprsConfig
-                          ?? throw new ArgumentNullException(nameof(aprsConfig));
+            _latestDataProvider = latestDataProvider;
+            _gatewayConfiguration = gatewayConfiguration;
+            _aprsConfig = aprsConfig;
         }
 
         /// <summary>

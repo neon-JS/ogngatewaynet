@@ -1,4 +1,3 @@
-using System;
 using Akka.Actor;
 using Microsoft.AspNetCore.SignalR;
 using WebsocketGateway.Dtos;
@@ -22,9 +21,6 @@ namespace WebsocketGateway.Actors
             LatestDataProvider latestDataProvider
         )
         {
-            if (hubContext == null) throw new ArgumentNullException(nameof(hubContext));
-            if (latestDataProvider == null) throw new ArgumentNullException(nameof(latestDataProvider));
-
             Receive<FlightDataDto>(async message =>
             {
                 latestDataProvider.Push(message);
