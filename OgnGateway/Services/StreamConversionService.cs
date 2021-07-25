@@ -97,8 +97,6 @@ namespace OgnGateway.Services
         /// <returns></returns>
         private static float Convert(GroupCollection collection, int index, float factor = 1)
         {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-
             return (float) System.Convert.ToDouble(collection[index].Value) * factor;
         }
 
@@ -110,8 +108,6 @@ namespace OgnGateway.Services
         /// <returns></returns>
         private static float ConvertCoordinateValue(GroupCollection collection, int index)
         {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-
             /* Latitude and longitude (by APRS-standard) are given as following: ddmm.mmD where d = "degree", m = "minute" and D = "direction".
              * Notice that minutes are decimals, so 0.5 minutes equal 0 minutes, 30 secs.
              * We'll separate degrees and minutes, so we can convert it to a "degree"-only value.

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Akka.Util.Internal;
@@ -28,8 +27,7 @@ namespace WebsocketGateway.Providers
 
         public LatestDataProvider(GatewayConfiguration gatewayConfiguration)
         {
-            _gatewayConfiguration = gatewayConfiguration
-                                    ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
+            _gatewayConfiguration = gatewayConfiguration;
             _activeFlightData = new Dictionary<string, FlightDataDto>();
         }
 
@@ -39,8 +37,6 @@ namespace WebsocketGateway.Providers
         /// <param name="flightData">New flight-data</param>
         public void Push(FlightDataDto flightData)
         {
-            if (flightData == null) throw new ArgumentNullException(nameof(flightData));
-
             _activeFlightData[flightData.Aircraft.Id] = flightData;
         }
 

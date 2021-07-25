@@ -25,8 +25,7 @@ namespace OgnGateway.Providers
 
         public AircraftProvider(AprsConfig aprsConfig)
         {
-            _aprsConfig = aprsConfig
-                          ?? throw new ArgumentNullException(nameof(aprsConfig));
+            _aprsConfig = aprsConfig;
             _aircraftList = new Dictionary<string, Aircraft>();
         }
 

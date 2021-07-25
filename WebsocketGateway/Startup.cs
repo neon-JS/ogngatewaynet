@@ -1,4 +1,3 @@
-using System;
 using Akka.Actor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -78,8 +77,6 @@ namespace WebsocketGateway
         /// <param name="services">The systems' IServiceCollection</param>
         private void ConfigureConfigBasedServices(IServiceCollection services)
         {
-            if (services == null) throw new ArgumentNullException(nameof(services));
-
             var gatewayConfiguration = new GatewayConfiguration();
             Configuration.GetSection("GatewayOptions").Bind(gatewayConfiguration);
             services.AddSingleton(gatewayConfiguration);

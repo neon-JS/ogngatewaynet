@@ -63,14 +63,10 @@ namespace WebsocketGateway.Services
             GatewayConfiguration gatewayConfiguration
         )
         {
-            _streamProvider = streamProvider
-                              ?? throw new ArgumentNullException(nameof(streamProvider));
-            _actorPropsFactory = actorPropsFactory
-                                 ?? throw new ArgumentNullException(nameof(actorPropsFactory));
-            _actorSystem = actorSystem
-                           ?? throw new ArgumentNullException(nameof(actorSystem));
-            _gatewayConfiguration = gatewayConfiguration
-                                    ?? throw new ArgumentNullException(nameof(gatewayConfiguration));
+            _streamProvider = streamProvider;
+            _actorPropsFactory = actorPropsFactory;
+            _actorSystem = actorSystem;
+            _gatewayConfiguration = gatewayConfiguration;
         }
 
         /// <summary>
