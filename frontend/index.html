@@ -113,7 +113,7 @@
                     <td class="variable-value"><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
                     <td class="variable-value"><span>{{Math.round(item.turnRate)}}</span></td>
                     <td><span>{{                        
-                        item.isFlying
+                        item.flying
                             ? item.turnRate >= 4 // approximated...
                                 ? 'in Thermik'
                                 : 'in der Luft'
@@ -303,13 +303,13 @@
                     this.data.push(entry);
                 } else {
                     if (isUpdate) {
-                        if (!this.data[outdatedIndex].isFlying && entry.isFlying) {
+                        if (!this.data[outdatedIndex].flying && entry.flying) {
                             const text = entry.aircraft.registration
                                 ? `Die [${entry.aircraft.registration}] ist gestartet.`
                                 : 'Ein Flugzeug mit unbekannter Kennung ist gestartet.';
                             sendNotification(`Gliderradar: Start`, text);
 
-                        } else if (this.data[outdatedIndex].isFlying && !entry.isFlying) {
+                        } else if (this.data[outdatedIndex].flying && !entry.flying) {
                             const text = entry.aircraft.registration
                                 ? `Die [${entry.aircraft.registration}] ist gelandet.`
                                 : 'Ein Flugzeug mit unbekannter Kennung ist gelandet.';
@@ -338,8 +338,8 @@
                         return (entry1.aircraft.id > entry2.aircraft.id) ? 1 : -1;
                     })
                     .sort((entry1, entry2) => {
-                        if (entry1.isFlying && !entry2.isFlying) return -1;
-                        if (!entry1.isFlying && entry2.isFlying) return 1;
+                        if (entry1.flying && !entry2.flying) return -1;
+                        if (!entry1.flying && entry2.flying) return 1;
                         return 0;
                     })
                     .filter((entry) => (((new Date()).valueOf() - new Date(entry.dateTime).valueOf()) / 1000) <= this.configuration.maxAgeSeconds);
