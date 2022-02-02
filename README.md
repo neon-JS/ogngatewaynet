@@ -12,16 +12,11 @@ filtered.
 - A new aircraft appears in visible range
 - An aircraft starts or lands
 
-[Link to the OGN-wiki](http://wiki.glidernet.org/)
-
-**Info**: This is a rewrite of the _[OgnListener](https://gitlab.com/neon-js/ognlistener/)_ project which did similar
-things and was written in node.js. The _OgnListener_ is not being developed anymore!
-
 ## Structure
 This solution is split into two projects:
 
 - _OgnGateway_, which handles the connection to the APRS-servers, aircraft data and conversion to business models.
-- _WebsocketGateway_, which uses the _OgnGateway_ and provides the received data to (SignalR-) websockets.
+- _WebsocketGateway_, which uses the _OgnGateway_ and provides the received data to (SignalR-) websockets and HTTP endpoints.
 
 It also contains a very simple _frontend_, which is (poorly) written with Vue.js and currently in german.
 This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data / creates live notifications.
@@ -44,11 +39,51 @@ There are two methods which are used to communicate between server and client:
 
 - `NewData(FlightDataDto data): void`, which is sent from **server -> client** and contains the latest aircraft- /
    flight-data.
-- `InitialRequest(): FlightDataDto[]`, which is sent from **client -> server**. The result contains all latest aircraft
-   data of the last timespan (this timespan is configurable, see `GatewayOptions.MaxAgeSeconds` in
-   _appsettings.json.default_).
-- `GetConfiguration(): {MaxAgeSeconds, EventsOnly, IntervalSeconds, FilterPosition, FilterRadius}`, which is sent from 
-   **client -> server**. The result contains some information about the server-configuration. 
+
+## HTTP-API
+The following endpoints can be accessed without authentication:
+
+- _GET /api/current_  
+Returns: `FlightDataDto[]`
+
+- _GET /api/config_  
+Returns (see _appsettings.json.default_ for further information): 
+```
+{
+   "maxAgeSeconds": 20,
+   "eventsOnly": false,
+   "intervalSeconds": 2, /* or null */
+   "filterPosition": {
+         "latitude": 12.345,
+         "longitude": 123.45
+   },
+   "filterRadius": 15
+}       
+```
+
+## DTOs
+### FlightDataDto
+```
+{
+   "speed": 123.4, /* km/h */
+   "altitude": 3456.7, /* m */
+   "verticalSpeed": 2.3, /* m/s */
+   "turnRate": 2.1, /* turns/min */
+   "course": 123.0, /* degrees */
+   "position": {
+      "latitude": 123.4,
+      "longitude": 111.1
+   },
+   "dateTime": "2012-04-23T18:25:43.511Z",
+   "aircraft": {
+      "id": "ABCD12",
+      "callSign": "A1", /* or null */
+      "registration": "D-XYZA", /* or null */
+      "type": "Airbus A380" /* or null */
+   },
+   "flying": false /* as defined in appsettings.json */
+}
+```
 
 ## License
 This code is licensed under the MIT-License (see _LICENSE.md_).
