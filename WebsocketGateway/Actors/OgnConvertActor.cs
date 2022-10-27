@@ -23,46 +23,39 @@ namespace WebsocketGateway.Actors
             // When receiving the raw string from the listener, convert it to FlightData and pass it to the next Actor
             Receive<string>(message =>
             {
-                var convertedMessage = StreamConversionService.ConvertData(message);
-                if (convertedMessage == null)
+                var flightData = StreamConverter.ConvertData(message);
+                if (flightData == null)
                 {
                     // Ignore non-parseable messages
                     return;
                 }
 
-                // The next step also happens on this Actor so tell another "Self" to handle the FlightData
-                actorSystem.ActorSelection(Self.Path).Tell(convertedMessage, Self);
-            });
-
-            // When receiving FlightData, convert it into FlightDataDto and pass it to the next actor
-            Receive<FlightData>(message =>
-            {
-                var aircraft = aircraftProvider.Load(message.AircraftId);
+                var aircraft = aircraftProvider.Load(flightData.AircraftId);
                 if (!aircraft.Visible)
                 {
                     // The aircraft should not be visible, therefore drop the message.
                     return;
                 }
 
-                var flying = message.Altitude >= gatewayConfiguration.MinimalAltitude
-                             && message.Speed >= gatewayConfiguration.MinimalSpeed;
+                var isFlying = flightData.Altitude >= gatewayConfiguration.MinimalAltitude
+                             && flightData.Speed >= gatewayConfiguration.MinimalSpeed;
 
-                var convertedMessage = new FlightDataDto(
-                    message.Speed,
-                    message.Altitude,
-                    message.VerticalSpeed,
-                    message.TurnRate,
-                    message.Course,
-                    message.Position,
-                    message.DateTime,
+                var flightDataDto = new FlightDataDto(
+                    flightData.Speed,
+                    flightData.Altitude,
+                    flightData.VerticalSpeed,
+                    flightData.TurnRate,
+                    flightData.Course,
+                    flightData.Position,
+                    flightData.DateTime,
                     new AircraftDto(aircraft),
-                    flying
+                    isFlying
                 );
 
                 // Pass the convertedMessage to the IMessageProcessActor so it can be further processed.
                 actorSystem
                     .ActorSelection($"user/{ActorControlService.MessageProcessActorName}")
-                    .Tell(convertedMessage, Self);
+                    .Tell(flightDataDto, Self);
             });
         }
     }

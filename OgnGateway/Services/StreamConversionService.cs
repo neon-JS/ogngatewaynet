@@ -8,7 +8,7 @@ namespace OgnGateway.Services
     /// <summary>
     /// Converter for getting models from stream data messages
     /// </summary>
-    public static class StreamConversionService
+    public static class StreamConverter
     {
         /// <summary>
         /// Main pattern for getting all needed information from a raw stream-line.

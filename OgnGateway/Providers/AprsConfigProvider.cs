@@ -12,9 +12,6 @@ namespace OgnGateway.Providers
     /// </summary>
     public class AprsConfigProvider
     {
-        /// <summary>
-        /// Path of the current configuration
-        /// </summary>
         private readonly string _configPath;
 
         public AprsConfigProvider()

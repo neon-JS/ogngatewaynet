@@ -4,6 +4,7 @@ using Akka.Actor;
 using Akka.Util.Internal;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.DateTime;
+using WebsocketGateway.Providers;
 using WebsocketGateway.Services;
 
 namespace WebsocketGateway.Actors
@@ -26,50 +27,36 @@ namespace WebsocketGateway.Actors
         /// </summary>
         private readonly IDictionary<string, FlightDataDto> _messageQueue;
 
-        /// <summary>
-        /// Contains the last received aircraft-data for an aircraft
-        /// </summary>
-        private readonly IDictionary<string, FlightDataDto> _latestAircraftMessages;
-
-        /// <summary>
-        /// Akka.NET ActorSystem that is needed to find the next Actor if necessary
-        /// </summary>
         private readonly ActorSystem _actorSystem;
-
-        /// <summary>
-        /// Our current configuration
-        /// </summary>
         private readonly GatewayConfiguration _gatewayConfiguration;
+        private readonly LatestDataProvider _latestDataProvider;
 
         public DelayMessageProcessActor(
             ActorSystem actorSystem,
-            GatewayConfiguration gatewayConfiguration
+            GatewayConfiguration gatewayConfiguration,
+            LatestDataProvider latestDataProvider
         )
         {
+            _messageQueue = new Dictionary<string, FlightDataDto>();
             _actorSystem = actorSystem;
             _gatewayConfiguration = gatewayConfiguration;
-            _latestAircraftMessages = new Dictionary<string, FlightDataDto>();
-            _messageQueue = new Dictionary<string, FlightDataDto>();
+            _latestDataProvider = latestDataProvider;
 
             SetUpReceiver();
         }
 
-        /// <summary>
-        /// Sets up the Actor so it handles incoming messages
-        /// </summary>
         private void SetUpReceiver()
         {
             Receive<FlightDataDto>(message =>
             {
                 var aircraftId = message.Aircraft.Id;
+                var latestEntry = _latestDataProvider.Get(aircraftId);
 
-                var isEvent = !_latestAircraftMessages.ContainsKey(aircraftId)
-                              || _latestAircraftMessages[aircraftId].Flying != message.Flying
-                              || _latestAircraftMessages[aircraftId].DateTime
+                var isEvent = latestEntry is null
+                              || latestEntry.Flying != message.Flying
+                              || latestEntry.DateTime
                                   .AddSeconds(_gatewayConfiguration.MaxAgeSeconds)
                                   .IsInPast();
-
-                _latestAircraftMessages[aircraftId] = message;
 
                 if (isEvent)
                 {
@@ -85,6 +72,9 @@ namespace WebsocketGateway.Actors
                 }
             });
 
+            /// <summary
+            /// Pushes all queued messages to the publisher actor
+            /// </summary>
             Receive<PushMessages>(_ =>
             {
                 var entries = _messageQueue.ToList();

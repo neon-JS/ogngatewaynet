@@ -27,19 +27,18 @@ namespace OgnGateway.Providers
         private const int IndexIdentified = 6;
 
         /// <summary>
-        /// Current configuration as it contains the url that should be called
-        /// </summary>
-        private readonly AprsConfig _aprsConfig;
-
-        /// <summary>
         /// Cached list containing all parsed aircraft
         /// </summary>
         private readonly Dictionary<string, Aircraft> _aircraftList;
 
-        public AircraftProvider(AprsConfig aprsConfig)
+        private readonly AprsConfig _aprsConfig;
+
+        public AircraftProvider(
+            AprsConfig aprsConfig
+        )
         {
-            _aprsConfig = aprsConfig;
             _aircraftList = new Dictionary<string, Aircraft>();
+            _aprsConfig = aprsConfig;
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace OgnGateway.Providers
         /// <returns>Task indicating whether initialization is done</returns>
         /// <seealso href="https://github.com/glidernet/ogn-ddb/blob/master/README.md"/>
         /// <exception cref="Exception">On invalid config or HTTP-errors</exception>
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             _aprsConfig.DdbAircraftListUrl.EnsureNotEmpty();
 

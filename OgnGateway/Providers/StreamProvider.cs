@@ -18,22 +18,16 @@ namespace OgnGateway.Providers
         /// </summary>
         public IObservable<string> Stream { get; }
 
-        /// <summary>
-        /// Current configuration that is needed to connect to the OGN servers
-        /// </summary>
         private readonly AprsConfig _aprsConfig;
 
-        public StreamProvider(AprsConfig aprsConfig)
+        public StreamProvider(
+            AprsConfig aprsConfig
+        )
         {
             _aprsConfig = aprsConfig;
             Stream = CreateStream();
         }
 
-        /// <summary>
-        /// Creates the Observable that is listening the the OGN server
-        /// </summary>
-        /// <returns>Observable that is listening the the OGN server</returns>
-        /// <exception cref="Exception">In case of invalid config</exception>
         private IObservable<string> CreateStream()
         {
             _aprsConfig.AprsHost.EnsureNotEmpty();

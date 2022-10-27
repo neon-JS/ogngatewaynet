@@ -2,9 +2,6 @@ using System;
 
 namespace WebsocketGateway.Extensions.DateTime
 {
-    /// <summary>
-    /// Class containing extension methods for the DateTime object
-    /// </summary>
     public static class DateTimeExtensions
     {
         /// <summary>

@@ -10,8 +10,6 @@ namespace WebsocketGateway.Providers
 {
     /// <summary>
     /// A provider that is used to hold active airplane-data.
-    /// The messages are provided by the <see cref="PublishActor"/> and have to be
-    /// stored in here to pass them to the  <see cref="ApiController"/>.
     /// </summary>
     public class LatestDataProvider
     {
@@ -31,13 +29,16 @@ namespace WebsocketGateway.Providers
             _activeFlightData = new Dictionary<string, FlightDataDto>();
         }
 
-        /// <summary>
-        /// Adds new flight-data that we should store.
-        /// </summary>
-        /// <param name="flightData">New flight-data</param>
         public void Push(FlightDataDto flightData)
         {
             _activeFlightData[flightData.Aircraft.Id] = flightData;
+        }
+
+        public FlightDataDto? Get(string aircraftId)
+        {
+            return _activeFlightData.ContainsKey(aircraftId)
+                ? _activeFlightData[aircraftId]
+                : null;
         }
 
         /// <summary>

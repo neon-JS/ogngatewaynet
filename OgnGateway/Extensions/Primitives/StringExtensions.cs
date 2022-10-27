@@ -2,9 +2,6 @@ using System;
 
 namespace OgnGateway.Extensions.Primitives
 {
-    /// <summary>
-    /// Class containing extension methods for the string type
-    /// </summary>
     public static class StringExtensions
     {
         /// <summary>

@@ -88,7 +88,7 @@ namespace WebsocketGateway
             services.AddSingleton(_ =>
             {
                 var provider = new AircraftProvider(aprsConfig);
-                provider.Initialize().GetAwaiter().GetResult();
+                provider.InitializeAsync().GetAwaiter().GetResult();
                 return provider;
             });
         }

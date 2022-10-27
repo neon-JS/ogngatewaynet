@@ -24,12 +24,12 @@ namespace OgnGateway
             var streamListener = new StreamProvider(config);
             var aircraftProvider = new AircraftProvider(config);
 
-            await aircraftProvider.Initialize();
+            await aircraftProvider.InitializeAsync();
 
             streamListener.Stream
                 .Subscribe(line =>
                 {
-                    var result = StreamConversionService.ConvertData(line);
+                    var result = StreamConverter.ConvertData(line);
                     if (result != null)
                     {
                         Console.WriteLine(result);

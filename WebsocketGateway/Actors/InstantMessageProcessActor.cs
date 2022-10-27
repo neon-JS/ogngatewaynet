@@ -16,14 +16,7 @@ namespace WebsocketGateway.Actors
         /// </summary>
         private readonly IDictionary<string, FlightDataDto> _latestAircraftMessages;
 
-        /// <summary>
-        /// Akka.NET ActorSystem that is needed to find the next Actor if necessary
-        /// </summary>
         private readonly ActorSystem _actorSystem;
-
-        /// <summary>
-        /// Our current configuration
-        /// </summary>
         private readonly GatewayConfiguration _gatewayConfiguration;
 
         public InstantMessageProcessActor(
@@ -31,16 +24,13 @@ namespace WebsocketGateway.Actors
             GatewayConfiguration gatewayConfiguration
         )
         {
+            _latestAircraftMessages = new Dictionary<string, FlightDataDto>();
             _actorSystem = actorSystem;
             _gatewayConfiguration = gatewayConfiguration;
-            _latestAircraftMessages = new Dictionary<string, FlightDataDto>();
 
             SetUpReceiver();
         }
 
-        /// <summary>
-        /// Sets up the Actor so it handles incoming messages
-        /// </summary>
         private void SetUpReceiver()
         {
             Receive<FlightDataDto>(message =>

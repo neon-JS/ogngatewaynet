@@ -37,24 +37,15 @@ namespace WebsocketGateway.Factories
             _latestDataProvider = latestDataProvider;
         }
 
-        /// <summary>
-        /// Returns Props for the IMessageProcessActor based on the current configuration.
-        /// </summary>
-        /// <returns>Props for the IMessageProcessActor based on the current configuration</returns>
         public Props CreateMessageProcessActorProps()
         {
             // DO NOT use a Pool of Actors as we have a certain state in this actor which should be kept between the calls.
             return _gatewayConfiguration.HasInterval()
-                ? Props.Create(() => new DelayMessageProcessActor(_actorSystem, _gatewayConfiguration))
+                ? Props.Create(() => new DelayMessageProcessActor(_actorSystem, _gatewayConfiguration, _latestDataProvider))
                 : Props.Create(() => new InstantMessageProcessActor(_actorSystem, _gatewayConfiguration));
         }
 
-        /// <summary>
-        /// Returns Props for the OgnConvertActor based on the current configuration.
-        /// </summary>
-        /// <returns>Props for the OgnConvertActor based on the current configuration</returns>
-        /// <exception cref="ArgumentOutOfRangeException">If Workers number is invalid</exception>
-        public Props CreateOgnConvertActorProps()
+       public Props CreateOgnConvertActorProps()
         {
             if (_gatewayConfiguration.Workers <= 0)
             {
@@ -66,10 +57,6 @@ namespace WebsocketGateway.Factories
                 .WithRouter(new SmallestMailboxPool(_gatewayConfiguration.Workers));
         }
 
-        /// <summary>
-        /// Returns Props for the PublishActor
-        /// </summary>
-        /// <returns>Props for the PublishActor</returns>
         public Props CreatePublishActorProps()
         {
             if (_gatewayConfiguration.Workers <= 0)
