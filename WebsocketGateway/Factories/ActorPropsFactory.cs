@@ -1,13 +1,12 @@
 using System;
 using Akka.Actor;
 using Akka.Routing;
-using Microsoft.AspNetCore.SignalR;
 using OgnGateway.Providers;
 using WebsocketGateway.Actors;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.Dtos;
-using WebsocketGateway.Hubs;
 using WebsocketGateway.Providers;
+using WebsocketGateway.Services;
 
 namespace WebsocketGateway.Factories
 {
@@ -19,22 +18,22 @@ namespace WebsocketGateway.Factories
         private readonly GatewayConfiguration _gatewayConfiguration;
         private readonly ActorSystem _actorSystem;
         private readonly AircraftProvider _aircraftProvider;
-        private readonly IHubContext<DefaultHub> _hubContext;
         private readonly LatestDataProvider _latestDataProvider;
+        private readonly WebsocketService _websocketService;
 
         public ActorPropsFactory(
             GatewayConfiguration gatewayConfiguration,
             ActorSystem actorSystem,
             AircraftProvider aircraftProvider,
-            IHubContext<DefaultHub> hubContext,
-            LatestDataProvider latestDataProvider
+            LatestDataProvider latestDataProvider,
+            WebsocketService websocketService
         )
         {
             _gatewayConfiguration = gatewayConfiguration;
             _actorSystem = actorSystem;
             _aircraftProvider = aircraftProvider;
-            _hubContext = hubContext;
             _latestDataProvider = latestDataProvider;
+            _websocketService = websocketService;
         }
 
         public Props CreateMessageProcessActorProps()
@@ -65,7 +64,7 @@ namespace WebsocketGateway.Factories
             }
 
             return Props
-                .Create(() => new PublishActor(_hubContext, _latestDataProvider))
+                .Create(() => new PublishActor(_websocketService, _latestDataProvider))
                 .WithRouter(new SmallestMailboxPool(_gatewayConfiguration.Workers));
         }
     }

@@ -8,7 +8,6 @@ using OgnGateway.Dtos;
 using OgnGateway.Providers;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Factories;
-using WebsocketGateway.Hubs;
 using WebsocketGateway.Providers;
 using WebsocketGateway.Services;
 
@@ -32,6 +31,7 @@ namespace WebsocketGateway
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSingleton<WebsocketService>();
 
             ConfigureConfigBasedServices(services);
 
@@ -39,19 +39,8 @@ namespace WebsocketGateway
             services.AddSingleton<LatestDataProvider>();
             services.AddSingleton(_ => ActorSystem.Create("WebsocketGateway"));
 
-            services.AddSignalR();
             services.AddSingleton<ActorPropsFactory>();
             services.AddHostedService<ActorControlService>();
-
-            services.AddCors(options => options.AddPolicy("CorsPolicyDev",
-                builder =>
-                {
-                    builder
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .WithOrigins("http://localhost:8000")
-                        .AllowCredentials();
-                }));
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -59,15 +48,20 @@ namespace WebsocketGateway
         {
             if (env.IsDevelopment())
             {
-                app.UseCors("CorsPolicyDev");
                 app.UseDeveloperExceptionPage();
+                app.UseCors(corsPolicyBuilder => 
+                    corsPolicyBuilder
+                        .WithOrigins("http://localhost:8000")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                );
             }
 
             app.UseRouting();
+            app.UseWebSockets();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<DefaultHub>("/websocket");
             });
         }
 
