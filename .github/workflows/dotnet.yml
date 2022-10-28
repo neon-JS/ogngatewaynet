@@ -1,16 +1,15 @@
 name: .NET
-
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
+defaults:
+  run:
+    working-directory: src
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
