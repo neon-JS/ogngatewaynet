@@ -20,18 +20,25 @@ This solution is split into two projects:
 It also contains a very simple _frontend_, which is written with Vue.js and currently in german.
 This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data / creates live notifications.
 
-## How to use
+## How to extend
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
 - Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
 - Extend the solution with your code.
 
 ## How to host
+
+### Native
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
 - Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
 - Either build the _WebsocketGateway_ project or just run it.
 - Connect to the websocket with your frontend, application etc.
+
+### Docker
+- Clone / download this repository.
+- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
+- `cd docker && docker compose up`
 
 ## Websocket
 The server sends the clients `FlightDataDto`s regularly or on events. 
@@ -44,7 +51,7 @@ The following endpoints can be accessed without authentication:
 Returns: `FlightDataDto[]`
 
 - _GET /api/config_  
-Returns `Config` (see _appsettings.json.default_ for further information): 
+Returns `Config` 
 
 
 ## DTOs
@@ -72,6 +79,7 @@ Returns `Config` (see _appsettings.json.default_ for further information):
 ```
 
 ### Config
+See _appsettings.json.default_ for further information.
 ```json
 {
    "maxAgeSeconds": 20,
@@ -81,7 +89,7 @@ Returns `Config` (see _appsettings.json.default_ for further information):
          "latitude": 12.345,
          "longitude": 123.45
    },
-   "filterRadius": 15
+   "filterRadius": 15 /* km */
 }       
 ```
 

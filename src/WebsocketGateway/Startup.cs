@@ -1,3 +1,4 @@
+using System;
 using Akka.Actor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -58,7 +59,7 @@ namespace WebsocketGateway
             }
 
             app.UseRouting();
-            app.UseWebSockets();
+            app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(1) });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
