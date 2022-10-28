@@ -5,7 +5,9 @@ riderModule.iml
 /_ReSharper.Caches/
 .idea/
 config.json
-WebsocketGateway/appsettings.json
+src/WebsocketGateway/appsettings.json
 *.user
 *.Development.json
 .DS_Store
+.config/
+.vscode/

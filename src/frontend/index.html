@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Gliderradar LIVE (EDLG)</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="mask-icon" href="assets/safari-pinned-tab.svg" color="#ff4444">
+    <link rel="shortcut icon" href="assets/favicon.ico">
+
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="msapplication-TileColor" content="#b91d47">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+</head>
+
+<body>
+    <div id="list">
+        <nav class="navbar navbar-dark bg-dark">
+            <span class="navbar-brand mb-0 h1">&nbsp;</span>
+        </nav>
+        <div class="header">
+            <div class="container">
+                <h1 class="display-4">
+                    <img src="assets/android-chrome-192x192.png" class="header-image" alt="Logo">
+                    Gliderradar LIVE (EDLG)
+                </h1>
+                <p class="lead">Aktuell aktive Flugzeuge (mit FLARM) in Kleve und Asperden</p>
+            </div>
+        </div>
+        <div class="container" v-if="hasNotificationPermission === false">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Notifications</h5>
+                    <p class="card-text">
+                        Aktiviere die Notifications, um automatisch informiert zu werden,
+                        wenn ein Flugzeug startet, landet oder neu auf der Karte erscheint.
+                    </p>
+                    <a href="javascript:void(0)" v-on:click="requestNotificationPermissions()"
+                        class="btn btn-primary">Notifications aktivieren</a>
+                </div>
+            </div>
+        </div>
+        <div class="container overflow-auto">
+            <table class="table table-striped table-bordered table-dresponsive">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Kennung</th>
+                        <th scope="col">Höhe</th>
+                        <th scope="col">Geschwindigkeit</th>
+                        <th scope="col">Kurs</th>
+                        <th scope="col">Koordinaten</th>
+                        <th scope="col">Steigen</th>
+                        <th scope="col">Kreise/Minute</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template v-for="item in data">
+                        <tr>
+                            <td class="variable-value">
+                                <span>
+                                    <span v-if="!!item.aircraft.registration">
+                                        <b>{{item.aircraft.registration}}</b><br>{{item.aircraft.type}}
+                                    </span>
+                                    <span v-if="!item.aircraft.registration">unbekannt</span>
+                                </span>
+                            </td>
+                            <td class="variable-value"><span>{{item.altitude.toFixed(0)}}m</span></td>
+                            <td class="variable-value"><span>{{item.speed.toFixed(0)}}km/h</span></td>
+                            <td class="variable-value"><span>{{item.course.toFixed(0)}}°</span></td>
+                            <td class="variable-value">
+                                <span>
+                                    <a class="coordinate-link" title="Zeigt das Flugzeug auf der Live-Map an."
+                                        v-on:click="updateFrameCoordinates(item.position.latitude, item.position.longitude)">
+                                        {{convertCoordinateToReadable(item.position.latitude, true)}}<br>
+                                        {{convertCoordinateToReadable(item.position.longitude, false)}}
+                                    </a>
+                                </span>
+                            </td>
+                            <td class="variable-value"><span>{{item.verticalSpeed.toFixed(1)}}m/s</span></td>
+                            <td class="variable-value"><span>{{Math.round(item.turnRate)}}</span></td>
+                            <td>
+                                <span>{{
+                                    item.flying
+                                        ? item.turnRate >= 4 // approximated...
+                                            ? 'in Thermik'
+                                            : 'in der Luft'
+                                        : 'am Boden'
+                                }}</span>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <div class="container">
+            <div class="d-flex flex-row bd-highlight mb-3 align-items-stretch">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Live-Map</h5>
+                        <p class="card-text">Zeigt eine eingebettete Live-Map (bereitgestellt von <a
+                                href="https://live.glidernet.org" target="_blank">live.glidernet.org</a>)
+                        </p>
+                        <a href="javascript:void(0)" v-on:click="showFrame = !showFrame" class="btn btn-primary">
+                            Live-Map {{!showFrame ? 'aktivieren' : 'deaktivieren'}}
+                        </a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Open Glider Network</h5>
+                        <p class="card-text">Alle Daten kommen von Open Glider Network. Dort gibt es Live-Maps sowie
+                            eine
+                            Entwickler-Doku.</p>
+                        <a href="http://wiki.glidernet.org/" class="btn btn-primary" target="_blank">zum Open
+                            Glider Network</a>
+                    </div>
+                </div>
+            </div>
+            <div v-if="showFrame === true" id="frame-container">
+                <iframe name="frame" allowfullscreen :src="getIframeSrc()"></iframe>
+            </div>
+            <div class="container overflow-auto">
+                Beobachtetes Gebiet: {{ convertCoordinateToReadable(configuration.filterPosition.latitude, true) }},
+                {{ convertCoordinateToReadable(configuration.filterPosition.longitude, false) }}<br>
+                Beobachtungsradius: {{configuration.filterRadius}} km<br>
+                Aktualisierungszeitraum: {{
+                configuration.intervalSeconds
+                    ? 'Alle ' + configuration.intervalSeconds + 'Sekunden'
+                    : 'Ohne Verzögerung'
+                }}
+                {{configuration.eventsOnly ? 'nur für Ereignisse' : ''}}
+            </div>
+        </div>
+    </div>
+    <footer class="page-footer font-small blue">
+        <div class="footer-copyright text-center py-3">
+            2019 - 2022, Niklas Schmidt<br>
+            Sources available on <a href="https://github.com/neon-JS/ogngatewaynet" target="_blank">Github</a><br>
+            Thanks to the <a href="http://wiki.glidernet.org/" target="_blank">Open Glider Network</a> for your data and
+            documentation!
+        </div>
+    </footer>
+    <script src="js/vue.global.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

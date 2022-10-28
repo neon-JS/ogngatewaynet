@@ -1,12 +1,11 @@
 # OgnGateway.NET
 ![.NET Build status](https://github.com/neon-JS/ogngatewaynet/workflows/.NET/badge.svg)
-![CodeQL status](https://github.com/neon-JS/ogngatewaynet/workflows/CodeQL/badge.svg)
 
-A simple gateway for OGN-data which feeds (SignalR-) websockets.
+A simple gateway for OGN-data which feeds websockets.
 This gateway listens to the APRS-servers of the OpenGliderNetwork and parses & passes the received messages to all
-connected clients. It is configurable so that certain events (see below) will trigger an immediately message while the
-rest is buffered and sent in intervals. Those intervals and rules can be changed, just like the area that should be
-filtered.
+connected clients. It is configurable so that certain events (see below) will trigger an immediately message
+while the rest is buffered and sent in intervals. Those intervals and rules can be changed, just like the area
+that should be filtered.
 
 ### Events
 - A new aircraft appears in visible range
@@ -16,29 +15,34 @@ filtered.
 This solution is split into two projects:
 
 - _OgnGateway_, which handles the connection to the APRS-servers, aircraft data and conversion to business models.
-- _WebsocketGateway_, which uses the _OgnGateway_ and provides the received data to (SignalR-) websockets and HTTP endpoints.
+- _WebsocketGateway_, which uses the _OgnGateway_ and provides the received data to websockets and HTTP endpoints.
 
-It also contains a very simple _frontend_, which is (poorly) written with Vue.js and currently in german.
+It also contains a very simple _frontend_, which is written with Vue.js and currently in german.
 This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data / creates live notifications.
 
-## How to use
+## How to extend
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
 - Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
-- Extend the solution with your code :D
+- Extend the solution with your code.
 
 ## How to host
+
+### Native
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
 - Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
 - Either build the _WebsocketGateway_ project or just run it.
-- Connect to the SignalR websocket with your frontend, application etc.
+- Connect to the websocket with your frontend, application etc.
 
-## SignalR
-There are two methods which are used to communicate between server and client:
+### Docker
+- Clone / download this repository.
+- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
+- `cd docker && docker compose up`
 
-- `NewData(FlightDataDto data): void`, which is sent from **server -> client** and contains the latest aircraft- /
-   flight-data.
+## Websocket
+The server sends the clients `FlightDataDto`s regularly or on events. 
+It's accessible at _/websocket_.
 
 ## HTTP-API
 The following endpoints can be accessed without authentication:
@@ -47,23 +51,12 @@ The following endpoints can be accessed without authentication:
 Returns: `FlightDataDto[]`
 
 - _GET /api/config_  
-Returns (see _appsettings.json.default_ for further information): 
-```
-{
-   "maxAgeSeconds": 20,
-   "eventsOnly": false,
-   "intervalSeconds": 2, /* or null */
-   "filterPosition": {
-         "latitude": 12.345,
-         "longitude": 123.45
-   },
-   "filterRadius": 15
-}       
-```
+Returns `Config` 
+
 
 ## DTOs
 ### FlightDataDto
-```
+```json
 {
    "speed": 123.4, /* km/h */
    "altitude": 3456.7, /* m */
@@ -83,6 +76,21 @@ Returns (see _appsettings.json.default_ for further information):
    },
    "flying": false /* as defined in appsettings.json */
 }
+```
+
+### Config
+See _appsettings.json.default_ for further information.
+```json
+{
+   "maxAgeSeconds": 20,
+   "eventsOnly": false,
+   "intervalSeconds": 2, /* or null */
+   "filterPosition": {
+         "latitude": 12.345,
+         "longitude": 123.45
+   },
+   "filterRadius": 15 /* km */
+}       
 ```
 
 ## License
