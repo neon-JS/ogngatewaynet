@@ -11,7 +11,7 @@ namespace OgnGateway.Providers
     /// <summary>
     /// Provider for all OGN aircraft coming from the DDB
     /// </summary>
-    public class AircraftProvider
+    public class AircraftProvider : IAircraftProvider
     {
         private const string ValueYes = "Y";
         private const string FieldEnclosure = "'";

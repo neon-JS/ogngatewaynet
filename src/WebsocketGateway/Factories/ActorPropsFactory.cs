@@ -2,6 +2,7 @@ using System;
 using Akka.Actor;
 using Akka.Routing;
 using OgnGateway.Providers;
+using OgnGateway.Services;
 using WebsocketGateway.Actors;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.Dtos;
@@ -13,38 +14,41 @@ namespace WebsocketGateway.Factories
     /// <summary>
     /// Factory which returns the configuration (as <see cref="Akka.Actor.Props"/>) for out Actors
     /// </summary>
-    public class ActorPropsFactory
+    public class ActorPropsFactory : IActorPropsFactory
     {
         private readonly GatewayConfiguration _gatewayConfiguration;
-        private readonly ActorSystem _actorSystem;
-        private readonly AircraftProvider _aircraftProvider;
-        private readonly LatestDataProvider _latestDataProvider;
-        private readonly WebsocketService _websocketService;
+        private readonly IActorRefFactory _actorRefFactory;
+        private readonly IAircraftProvider _aircraftProvider;
+        private readonly ILatestDataProvider _latestDataProvider;
+        private readonly IWebsocketService _websocketService;
+        private readonly IStreamConverter _streamConverter;
 
         public ActorPropsFactory(
             GatewayConfiguration gatewayConfiguration,
-            ActorSystem actorSystem,
-            AircraftProvider aircraftProvider,
-            LatestDataProvider latestDataProvider,
-            WebsocketService websocketService
+            IActorRefFactory actorRefFactory,
+            IAircraftProvider aircraftProvider,
+            ILatestDataProvider latestDataProvider,
+            IWebsocketService websocketService,
+            IStreamConverter streamConverter
         )
         {
             _gatewayConfiguration = gatewayConfiguration;
-            _actorSystem = actorSystem;
+            _actorRefFactory = actorRefFactory;
             _aircraftProvider = aircraftProvider;
             _latestDataProvider = latestDataProvider;
             _websocketService = websocketService;
+            _streamConverter = streamConverter;
         }
 
         public Props CreateMessageProcessActorProps()
         {
             // DO NOT use a Pool of Actors as we have a certain state in this actor which should be kept between the calls.
             return _gatewayConfiguration.HasInterval()
-                ? Props.Create(() => new DelayMessageProcessActor(_actorSystem, _gatewayConfiguration, _latestDataProvider))
-                : Props.Create(() => new InstantMessageProcessActor(_actorSystem, _gatewayConfiguration));
+                ? Props.Create(() => new DelayMessageProcessActor(_actorRefFactory, _gatewayConfiguration, _latestDataProvider))
+                : Props.Create(() => new InstantMessageProcessActor(_actorRefFactory, _gatewayConfiguration, _latestDataProvider));
         }
 
-       public Props CreateOgnConvertActorProps()
+        public Props CreateOgnConvertActorProps()
         {
             if (_gatewayConfiguration.Workers <= 0)
             {
@@ -52,7 +56,7 @@ namespace WebsocketGateway.Factories
             }
 
             return Props
-                .Create(() => new OgnConvertActor(_actorSystem, _aircraftProvider, _gatewayConfiguration))
+                .Create(() => new OgnConvertActor(_actorRefFactory, _aircraftProvider, _streamConverter, _gatewayConfiguration))
                 .WithRouter(new SmallestMailboxPool(_gatewayConfiguration.Workers));
         }
 

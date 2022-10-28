@@ -8,12 +8,12 @@ namespace WebsocketGateway.Controllers
     [Route("api")]
     public class ApiController : Controller
     {
-        private readonly LatestDataProvider _latestDataProvider;
+        private readonly ILatestDataProvider _latestDataProvider;
         private readonly GatewayConfiguration _gatewayConfiguration;
         private readonly AprsConfig _aprsConfig;
 
         public ApiController(
-            LatestDataProvider latestDataProvider,
+            ILatestDataProvider latestDataProvider,
             GatewayConfiguration gatewayConfiguration,
             AprsConfig aprsConfig
         )

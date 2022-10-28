@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Akka.Actor;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.DateTime;
+using WebsocketGateway.Providers;
 using WebsocketGateway.Services;
 
 namespace WebsocketGateway.Actors
@@ -11,22 +12,19 @@ namespace WebsocketGateway.Actors
     /// </summary>
     public class InstantMessageProcessActor : ReceiveActor
     {
-        /// <summary>
-        /// Contains the last received aircraft-data for an aircraft
-        /// </summary>
-        private readonly IDictionary<string, FlightDataDto> _latestAircraftMessages;
-
-        private readonly ActorSystem _actorSystem;
+        private readonly IActorRefFactory _actorRefFactory;
         private readonly GatewayConfiguration _gatewayConfiguration;
+        private readonly ILatestDataProvider _latestDataProvider;
 
         public InstantMessageProcessActor(
-            ActorSystem actorSystem,
-            GatewayConfiguration gatewayConfiguration
+            IActorRefFactory actorRefFactory,
+            GatewayConfiguration gatewayConfiguration,
+            ILatestDataProvider latestDataProvider
         )
         {
-            _latestAircraftMessages = new Dictionary<string, FlightDataDto>();
-            _actorSystem = actorSystem;
+            _actorRefFactory = actorRefFactory;
             _gatewayConfiguration = gatewayConfiguration;
+            _latestDataProvider = latestDataProvider;
 
             SetUpReceiver();
         }
@@ -36,20 +34,19 @@ namespace WebsocketGateway.Actors
             Receive<FlightDataDto>(message =>
             {
                 var aircraftId = message.Aircraft.Id;
+                var latestEntry = _latestDataProvider.Get(aircraftId);
 
-                var isEvent = !_latestAircraftMessages.ContainsKey(aircraftId)
-                              || _latestAircraftMessages[aircraftId].Flying != message.Flying
-                              || _latestAircraftMessages[aircraftId].DateTime
+                var isEvent = latestEntry is null
+                              || latestEntry.Flying != message.Flying
+                              || latestEntry.DateTime
                                   .AddSeconds(_gatewayConfiguration.MaxAgeSeconds)
                                   .IsInPast();
-
-                _latestAircraftMessages[aircraftId] = message;
 
                 if (isEvent || !_gatewayConfiguration.EventsOnly)
                 {
                     // Immediately inform the PublishActor about this message
-                    _actorSystem
-                        .ActorSelection($"user/{ActorControlService.PublishActorName}")
+                    _actorRefFactory
+                        .ActorSelection($"user/{ActorControlHostedService.PublishActorName}")
                         .Tell(message, Self);
                 }
             });

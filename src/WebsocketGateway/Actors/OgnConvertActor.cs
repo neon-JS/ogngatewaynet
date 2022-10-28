@@ -16,14 +16,15 @@ namespace WebsocketGateway.Actors
     {
         public OgnConvertActor(
             IActorRefFactory actorSystem,
-            AircraftProvider aircraftProvider,
+            IAircraftProvider aircraftProvider,
+            IStreamConverter streamConverter,
             GatewayConfiguration gatewayConfiguration
         )
         {
             // When receiving the raw string from the listener, convert it to FlightData and pass it to the next Actor
             Receive<string>(message =>
             {
-                var flightData = StreamConverter.ConvertData(message);
+                var flightData = streamConverter.ConvertData(message);
                 if (flightData == null)
                 {
                     // Ignore non-parseable messages
@@ -54,7 +55,7 @@ namespace WebsocketGateway.Actors
 
                 // Pass the convertedMessage to the IMessageProcessActor so it can be further processed.
                 actorSystem
-                    .ActorSelection($"user/{ActorControlService.MessageProcessActorName}")
+                    .ActorSelection($"user/{ActorControlHostedService.MessageProcessActorName}")
                     .Tell(flightDataDto, Self);
             });
         }

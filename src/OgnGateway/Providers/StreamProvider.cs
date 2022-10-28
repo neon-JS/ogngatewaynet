@@ -11,7 +11,7 @@ namespace OgnGateway.Providers
     /// <summary>
     /// Provider that listens to the APRS stream of the OGN servers and publishes messages to the system.
     /// </summary>
-    public class StreamProvider
+    public class StreamProvider : IStreamProvider
     {
         /// <summary>
         /// Observable representing the data stream from the OGN servers
@@ -59,7 +59,7 @@ namespace OgnGateway.Providers
                     await client.ConnectAsync(_aprsConfig.AprsHost, _aprsConfig.AprsPort);
 
                     var streamReader = new StreamReader(client.GetStream());
-                    var streamWriter = new StreamWriter(client.GetStream()) {AutoFlush = true};
+                    var streamWriter = new StreamWriter(client.GetStream()) { AutoFlush = true };
 
                     // Login on the APRS server
                     await streamWriter.WriteLineAsync(loginText);

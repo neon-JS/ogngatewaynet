@@ -14,7 +14,7 @@ namespace WebsocketGateway.Services
     /// <summary>
     /// Controller that handles the working Actors which will parse and pass on incoming messages from the raw OGN-stream
     /// </summary>
-    public class ActorControlService : IHostedService
+    public class ActorControlHostedService : IHostedService
     {
         public const string MessageProcessActorName = "MessageProcess";
         public const string PublishActorName = "Publish";
@@ -25,14 +25,14 @@ namespace WebsocketGateway.Services
         /// </summary>
         private IDisposable? _stream;
 
-        private readonly StreamProvider _streamProvider;
-        private readonly ActorPropsFactory _actorPropsFactory;
+        private readonly IStreamProvider _streamProvider;
+        private readonly IActorPropsFactory _actorPropsFactory;
         private readonly ActorSystem _actorSystem;
         private readonly GatewayConfiguration _gatewayConfiguration;
 
-        public ActorControlService(
-            StreamProvider streamProvider,
-            ActorPropsFactory actorPropsFactory,
+        public ActorControlHostedService(
+            IStreamProvider streamProvider,
+            IActorPropsFactory actorPropsFactory,
             ActorSystem actorSystem,
             GatewayConfiguration gatewayConfiguration
         )

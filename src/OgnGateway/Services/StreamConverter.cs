@@ -8,7 +8,7 @@ namespace OgnGateway.Services
     /// <summary>
     /// Converter for getting models from stream data messages
     /// </summary>
-    public static class StreamConverter
+    public class StreamConverter : IStreamConverter
     {
         /// <summary>
         /// Main pattern for getting all needed information from a raw stream-line.
@@ -55,7 +55,7 @@ namespace OgnGateway.Services
         /// </summary>
         /// <param name="line">A line that was received by the OGN live stream</param>
         /// <returns>FlightData representation of the data</returns>
-        public static FlightData? ConvertData(string line)
+        public FlightData? ConvertData(string line)
         {
             line.EnsureNotEmpty();
 
@@ -96,7 +96,7 @@ namespace OgnGateway.Services
         /// <returns></returns>
         private static float Convert(GroupCollection collection, int index, float factor = 1)
         {
-            return (float) System.Convert.ToDouble(collection[index].Value) * factor;
+            return (float)System.Convert.ToDouble(collection[index].Value) * factor;
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace OgnGateway.Services
                           / 60 // because 60 minutes = 1 degree
                           / 100; // because of the removed decimal separator
 
-            var coordinateValue = (float) (degrees + minutes);
+            var coordinateValue = (float)(degrees + minutes);
 
             return orientation.Equals("S") || orientation.Equals("W")
                 ? coordinateValue * -1 // S/W are seen as negative!

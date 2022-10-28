@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OgnGateway.Dtos;
 using OgnGateway.Providers;
+using OgnGateway.Services;
 using WebsocketGateway.Dtos;
 using WebsocketGateway.Factories;
 using WebsocketGateway.Providers;
@@ -31,17 +32,19 @@ namespace WebsocketGateway
         /// <param name="services">The systems' IServiceCollection</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-            services.AddSingleton<WebsocketService>();
-
             ConfigureConfigBasedServices(services);
+            ConfigureActorSystem(services);
 
-            services.AddSingleton<StreamProvider>();
-            services.AddSingleton<LatestDataProvider>();
-            services.AddSingleton(_ => ActorSystem.Create("WebsocketGateway"));
+            services.AddSingleton<IStreamProvider, StreamProvider>();
+            services.AddSingleton<IStreamConverter, StreamConverter>();
 
-            services.AddSingleton<ActorPropsFactory>();
-            services.AddHostedService<ActorControlService>();
+            services.AddSingleton<IActorPropsFactory, ActorPropsFactory>();
+            services.AddSingleton<ILatestDataProvider, LatestDataProvider>();
+            services.AddSingleton<IWebsocketService, WebsocketService>();
+
+            services.AddHostedService<ActorControlHostedService>();
+
+            services.AddControllers();
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -66,6 +69,14 @@ namespace WebsocketGateway
             });
         }
 
+        private void ConfigureActorSystem(IServiceCollection services)
+        {
+            var actorSystem = ActorSystem.Create("WebsocketGateway");
+
+            services.AddSingleton<ActorSystem>(actorSystem);
+            services.AddSingleton<IActorRefFactory>(actorSystem);
+        }
+
         /// <summary>
         /// Configures all services & providers that are based on the appsettings.json
         /// </summary>
@@ -80,7 +91,7 @@ namespace WebsocketGateway
             Configuration.GetSection("AprsConfig").Bind(aprsConfig);
             services.AddSingleton(aprsConfig);
 
-            services.AddSingleton(_ =>
+            services.AddSingleton<IAircraftProvider>(_ =>
             {
                 var provider = new AircraftProvider(aprsConfig);
                 provider.InitializeAsync().GetAwaiter().GetResult();

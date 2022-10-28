@@ -11,10 +11,10 @@ namespace WebsocketGateway.Controllers
     [Route("websocket")]
     public class WebsocketController : Controller
     {
-        private readonly WebsocketService _websocketService;
+        private readonly IWebsocketService _websocketService;
 
         public WebsocketController(
-            WebsocketService websocketService
+            IWebsocketService websocketService
         ) {
             _websocketService = websocketService;
         }
@@ -38,7 +38,7 @@ namespace WebsocketGateway.Controllers
                 .Select(_ => websocket.State);
 
             await _websocketService.Messages
-                .Zip(websocketStatusChange)
+                .WithLatestFrom(websocketStatusChange)
                 .TakeWhile(tuple => tuple.Second == WebSocketState.Open)
                 .Select(tuple => tuple.First)
                 .Finally(async () => {

@@ -27,18 +27,19 @@ namespace WebsocketGateway.Actors
         /// </summary>
         private readonly IDictionary<string, FlightDataDto> _messageQueue;
 
-        private readonly ActorSystem _actorSystem;
+        private readonly IActorRefFactory _actorRefFactory;
         private readonly GatewayConfiguration _gatewayConfiguration;
-        private readonly LatestDataProvider _latestDataProvider;
+        private readonly ILatestDataProvider _latestDataProvider;
 
         public DelayMessageProcessActor(
-            ActorSystem actorSystem,
+            IActorRefFactory actorRefFactory,
             GatewayConfiguration gatewayConfiguration,
-            LatestDataProvider latestDataProvider
+            ILatestDataProvider latestDataProvider
         )
         {
             _messageQueue = new Dictionary<string, FlightDataDto>();
-            _actorSystem = actorSystem;
+
+            _actorRefFactory = actorRefFactory;
             _gatewayConfiguration = gatewayConfiguration;
             _latestDataProvider = latestDataProvider;
 
@@ -61,8 +62,8 @@ namespace WebsocketGateway.Actors
                 if (isEvent)
                 {
                     // Immediately inform the PublishActor about this message as it's an event
-                    _actorSystem
-                        .ActorSelection($"user/{ActorControlService.PublishActorName}")
+                    _actorRefFactory
+                        .ActorSelection($"user/{ActorControlHostedService.PublishActorName}")
                         .Tell(message, Self);
                 }
                 else if (!_gatewayConfiguration.EventsOnly)
@@ -83,8 +84,8 @@ namespace WebsocketGateway.Actors
                 entries
                     .Select(kv => kv.Value)
                     .ForEach(entry =>
-                        _actorSystem
-                            .ActorSelection($"user/{ActorControlService.PublishActorName}")
+                        _actorRefFactory
+                            .ActorSelection($"user/{ActorControlHostedService.PublishActorName}")
                             .Tell(entry, Self)
                     );
             });

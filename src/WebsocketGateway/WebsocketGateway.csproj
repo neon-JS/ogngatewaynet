@@ -21,7 +21,4 @@
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Websockets\" />
-    </ItemGroup>
 </Project>

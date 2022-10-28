@@ -11,8 +11,8 @@ namespace WebsocketGateway.Actors
     public class PublishActor : ReceiveActor
     {
         public PublishActor(
-            WebsocketService websocketService,
-            LatestDataProvider latestDataProvider
+            IWebsocketService websocketService,
+            ILatestDataProvider latestDataProvider
         )
         {
             Receive<FlightDataDto>(message =>

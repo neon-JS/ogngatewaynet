@@ -9,7 +9,7 @@ namespace WebsocketGateway.Providers
     /// <summary>
     /// A provider that is used to hold active airplane-data.
     /// </summary>
-    public class LatestDataProvider
+    public class LatestDataProvider : ILatestDataProvider
     {
         /// <summary>
         /// The currently active flight-data.

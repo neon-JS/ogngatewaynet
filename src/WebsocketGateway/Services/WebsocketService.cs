@@ -5,7 +5,7 @@ using System;
 
 namespace WebsocketGateway.Services
 {
-    public class WebsocketService
+    public class WebsocketService : IWebsocketService
     {
         public IObservable<byte[]> Messages => _messages;
         private readonly Subject<byte[]> _messages;
