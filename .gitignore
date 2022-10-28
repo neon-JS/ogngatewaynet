@@ -9,3 +9,5 @@ WebsocketGateway/appsettings.json
 *.user
 *.Development.json
 .DS_Store
+.config/
+.vscode/
