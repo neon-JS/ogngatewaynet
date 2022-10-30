@@ -90,7 +90,7 @@ createApp({
                     const text = entry.aircraft.registration
                         ? `Die [${entry.aircraft.registration}] ist neu aufgetaucht.`
                         : 'Ein Flugzeug mit unbekannter Kennung ist neu aufgetaucht.';
-                    this.convertCoordinateToReadablesendNotification(`Gliderradar: Neues Flugzeug`, text);
+                    this.sendNotification(`Gliderradar: Neues Flugzeug`, text);
                 }
 
                 this.data.push(entry);

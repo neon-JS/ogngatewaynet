@@ -7,6 +7,22 @@ services:
       dockerfile: ../docker/Dockerfile
     ports:
       - "5000:5000"
+    environment:
+      # - GatewayOptions:EventsOnly=
+      # - GatewayOptions:MinimalAltitude=
+      # - GatewayOptions:MinimalSpeed=
+      # - GatewayOptions:Workers=
+      # - GatewayOptions:IntervalSeconds=
+      # - GatewayOptions:MaxAgeSeconds=
+      # - AprsConfig:AprsPort=
+      # - AprsConfig:AprsUser=
+      # - AprsConfig:AprsPassword=
+      # - AprsConfig:AprsHost=
+      # - AprsConfig:DdbAircraftListUrl=
+      # - AprsConfig:FilterPosition:Latitude=
+      # - AprsConfig:FilterPosition:Longitude=
+      # - AprsConfig:FilterRadius=
+      - Urls:http://+:5000
   frontend:
     image: nginx:latest
     volumes:
