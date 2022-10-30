@@ -4,10 +4,11 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea/
-config.json
-src/WebsocketGateway/appsettings.json
 *.user
 *.Development.json
 .DS_Store
 .config/
 .vscode/
+src/WebsocketGateway/appsettings.json
+src/OgnGateway/config.json
+docker/docker-compose.yml

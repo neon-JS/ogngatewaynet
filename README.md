@@ -23,7 +23,7 @@ This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data /
 ## How to extend
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
-- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
+- Configure _src/WebsocketGateway/appsettings.json_.
 - Extend the solution with your code.
 
 ## How to host
@@ -31,18 +31,14 @@ This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data /
 ### Native
 - Clone / download this repository.
 - Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
-- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
+- Configure _src/WebsocketGateway/appsettings.json_.
 - Either build the _WebsocketGateway_ project or just run it.
 - Connect to the websocket with your frontend, application etc.
 
 ### Docker
 - Clone / download this repository.
-- Fill out the _appsettings.json.default_ and save it as _appsettings.json_.
+- Configure _docker/docker-compose.yml_ or _src/WebsocketGateway/appsettings.json_.
 - `cd docker && docker compose up`
-
-## Websocket
-The server sends the clients `FlightDataDto`s regularly or on events. 
-It's accessible at _/websocket_.
 
 ## HTTP-API
 The following endpoints can be accessed without authentication:
@@ -53,9 +49,11 @@ Returns: `FlightDataDto[]`
 - _GET /api/config_  
 Returns `Config` 
 
+- _GET /websocket_
+Conntects to websocket which sends the clients `FlightDataDto`s regularly or on events. 
 
-## DTOs
-### FlightDataDto
+### DTOs
+#### FlightDataDto
 ```json
 {
    "speed": 123.4, /* km/h */
@@ -78,8 +76,8 @@ Returns `Config`
 }
 ```
 
-### Config
-See _appsettings.json.default_ for further information.
+#### Config
+See _src/WebsocketGateway/appsettings.json for further information.
 ```json
 {
    "maxAgeSeconds": 20,
