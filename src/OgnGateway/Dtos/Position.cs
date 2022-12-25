@@ -1,13 +1,12 @@
-namespace OgnGateway.Dtos
+namespace OgnGateway.Dtos;
+
+public record Position(
+    float Latitude,
+    float Longitude
+)
 {
-    public record Position(
-        float Latitude,
-        float Longitude
-    )
+    public override string ToString()
     {
-        public override string ToString()
-        {
-            return $"Position: {{ latitude: {Latitude}, longitude: {Longitude} }}";
-        }
+        return $"Position: {{ latitude: {Latitude}, longitude: {Longitude} }}";
     }
 }

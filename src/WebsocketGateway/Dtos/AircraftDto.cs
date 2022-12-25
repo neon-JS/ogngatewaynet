@@ -1,23 +1,22 @@
 using OgnGateway.Dtos;
 
-namespace WebsocketGateway.Dtos
+namespace WebsocketGateway.Dtos;
+
+public record AircraftDto(string Id, string? CallSign, string? Registration, string? Type)
 {
-    public record AircraftDto(string Id, string? CallSign, string? Registration, string? Type)
+    public AircraftDto(Aircraft aircraft) :
+        this(
+            aircraft.Id,
+            aircraft.CallSign,
+            aircraft.Registration,
+            aircraft.Type
+        )
     {
-        public AircraftDto(Aircraft aircraft) :
-            this(
-                aircraft.Id,
-                aircraft.CallSign,
-                aircraft.Registration,
-                aircraft.Type
-            )
-        {
-        }
+    }
 
-        public override string ToString()
-        {
-            return $"Aircraft: {{ ID: {Id}, call-sign: {CallSign}, registration: {Registration}, type: {Type} }}";
+    public override string ToString()
+    {
+        return $"Aircraft: {{ ID: {Id}, call-sign: {CallSign}, registration: {Registration}, type: {Type} }}";
 
-        }
     }
 }

@@ -9,69 +9,68 @@ using WebsocketGateway.Dtos;
 using WebsocketGateway.Extensions.Dtos;
 using WebsocketGateway.Factories;
 
-namespace WebsocketGateway.Services
+namespace WebsocketGateway.Services;
+
+/// <summary>
+/// Controller that handles the working Actors which will parse and pass on incoming messages from the raw OGN-stream
+/// </summary>
+public class ActorControlHostedService : IHostedService
 {
+    public const string MessageProcessActorName = "MessageProcess";
+    public const string PublishActorName = "Publish";
+    private const string _OGN_CONVERT_ACTOR_NAME = "OgnConvert";
+
     /// <summary>
-    /// Controller that handles the working Actors which will parse and pass on incoming messages from the raw OGN-stream
+    /// Disposable Subscription that must exist during the lifetime of this service.
     /// </summary>
-    public class ActorControlHostedService : IHostedService
+    private IDisposable? _stream;
+
+    private readonly IStreamProvider _streamProvider;
+    private readonly IActorPropsFactory _actorPropsFactory;
+    private readonly ActorSystem _actorSystem;
+    private readonly GatewayConfiguration _gatewayConfiguration;
+
+    public ActorControlHostedService(
+        IStreamProvider streamProvider,
+        IActorPropsFactory actorPropsFactory,
+        ActorSystem actorSystem,
+        GatewayConfiguration gatewayConfiguration
+    )
     {
-        public const string MessageProcessActorName = "MessageProcess";
-        public const string PublishActorName = "Publish";
-        private const string OgnConvertActorName = "OgnConvert";
+        _streamProvider = streamProvider;
+        _actorPropsFactory = actorPropsFactory;
+        _actorSystem = actorSystem;
+        _gatewayConfiguration = gatewayConfiguration;
+    }
 
-        /// <summary>
-        /// Disposable Subscription that must exist during the lifetime of this service.
-        /// </summary>
-        private IDisposable? _stream;
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _actorSystem
+            .ActorOf(_actorPropsFactory.CreatePublishActorProps(), PublishActorName);
+        var messageProcessActor = _actorSystem
+            .ActorOf(_actorPropsFactory.CreateMessageProcessActorProps(), MessageProcessActorName);
+        var ognActor = _actorSystem
+            .ActorOf(_actorPropsFactory.CreateOgnConvertActorProps(), _OGN_CONVERT_ACTOR_NAME);
 
-        private readonly IStreamProvider _streamProvider;
-        private readonly IActorPropsFactory _actorPropsFactory;
-        private readonly ActorSystem _actorSystem;
-        private readonly GatewayConfiguration _gatewayConfiguration;
+        _stream = _streamProvider.Stream.Subscribe(message => ognActor.Tell(message));
 
-        public ActorControlHostedService(
-            IStreamProvider streamProvider,
-            IActorPropsFactory actorPropsFactory,
-            ActorSystem actorSystem,
-            GatewayConfiguration gatewayConfiguration
-        )
+        if (_gatewayConfiguration.HasInterval())
         {
-            _streamProvider = streamProvider;
-            _actorPropsFactory = actorPropsFactory;
-            _actorSystem = actorSystem;
-            _gatewayConfiguration = gatewayConfiguration;
+            _actorSystem.Scheduler.ScheduleTellRepeatedly(
+                TimeSpan.Zero,
+                TimeSpan.FromSeconds(_gatewayConfiguration.GetIntervalSeconds()),
+                messageProcessActor,
+                new DelayMessageProcessActor.PushMessages(),
+                null
+            );
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            _actorSystem
-                .ActorOf(_actorPropsFactory.CreatePublishActorProps(), PublishActorName);
-            var messageProcessActor = _actorSystem
-                .ActorOf(_actorPropsFactory.CreateMessageProcessActorProps(), MessageProcessActorName);
-            var ognActor = _actorSystem
-                .ActorOf(_actorPropsFactory.CreateOgnConvertActorProps(), OgnConvertActorName);
+        return Task.CompletedTask;
+    }
 
-            _stream = _streamProvider.Stream.Subscribe(message => ognActor.Tell(message));
-
-            if (_gatewayConfiguration.HasInterval())
-            {
-                _actorSystem.Scheduler.ScheduleTellRepeatedly(
-                    TimeSpan.Zero,
-                    TimeSpan.FromSeconds(_gatewayConfiguration.GetIntervalSeconds()),
-                    messageProcessActor,
-                    new DelayMessageProcessActor.PushMessages(),
-                    null
-                );
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _stream?.Dispose();
-            return _actorSystem.Terminate();
-        }
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _stream?.Dispose();
+        return _actorSystem.Terminate();
     }
 }

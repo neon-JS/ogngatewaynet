@@ -1,9 +1,8 @@
 ﻿using OgnGateway.Dtos;
 
-namespace OgnGateway.Services
+namespace OgnGateway.Services;
+
+public interface IStreamConverter
 {
-    public interface IStreamConverter
-    {
-        FlightData? ConvertData(string line);
-    }
+    FlightData? ConvertData(string line);
 }

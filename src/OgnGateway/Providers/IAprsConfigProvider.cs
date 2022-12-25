@@ -1,10 +1,9 @@
 ﻿using System.Threading.Tasks;
 using OgnGateway.Dtos;
 
-namespace OgnGateway.Providers
+namespace OgnGateway.Providers;
+
+public interface IAprsConfigProvider
 {
-    public interface IAprsConfigProvider
-    {
-        Task<AprsConfig> LoadAsync();
-    }
+    Task<AprsConfig> LoadAsync();
 }

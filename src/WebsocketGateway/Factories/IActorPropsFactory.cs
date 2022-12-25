@@ -1,11 +1,10 @@
 ﻿using Akka.Actor;
 
-namespace WebsocketGateway.Factories
+namespace WebsocketGateway.Factories;
+
+public interface IActorPropsFactory
 {
-    public interface IActorPropsFactory
-    {
-        Props CreateMessageProcessActorProps();
-        Props CreateOgnConvertActorProps();
-        Props CreatePublishActorProps();
-    }
+    Props CreateMessageProcessActorProps();
+    Props CreateOgnConvertActorProps();
+    Props CreatePublishActorProps();
 }

@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using OgnGateway.Dtos;
 
-namespace OgnGateway.Providers
+namespace OgnGateway.Providers;
+
+public interface IAircraftProvider
 {
-    public interface IAircraftProvider
-    {
-        Task InitializeAsync();
-        Aircraft Load(string aircraftId);
-    }
+    Task InitializeAsync();
+    Aircraft Load(string aircraftId);
 }

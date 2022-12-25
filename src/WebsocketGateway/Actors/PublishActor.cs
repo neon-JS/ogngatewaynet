@@ -3,23 +3,22 @@ using WebsocketGateway.Dtos;
 using WebsocketGateway.Providers;
 using WebsocketGateway.Services;
 
-namespace WebsocketGateway.Actors
+namespace WebsocketGateway.Actors;
+
+/// <summary>
+/// Actor which publishes incoming messages to the websocket-clients
+/// </summary>
+public class PublishActor : ReceiveActor
 {
-    /// <summary>
-    /// Actor which publishes incoming messages to the websocket-clients
-    /// </summary>
-    public class PublishActor : ReceiveActor
+    public PublishActor(
+        IWebsocketService websocketService,
+        ILatestDataProvider latestDataProvider
+    )
     {
-        public PublishActor(
-            IWebsocketService websocketService,
-            ILatestDataProvider latestDataProvider
-        )
+        Receive<FlightDataDto>(message =>
         {
-            Receive<FlightDataDto>(message =>
-            {
-                latestDataProvider.Push(message);
-                websocketService.Notify(message);
-            });
-        }
+            latestDataProvider.Push(message);
+            websocketService.Notify(message);
+        });
     }
 }

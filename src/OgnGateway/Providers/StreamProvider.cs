@@ -6,89 +6,88 @@ using System.Reactive.Linq;
 using OgnGateway.Dtos;
 using OgnGateway.Extensions.Primitives;
 
-namespace OgnGateway.Providers
+namespace OgnGateway.Providers;
+
+/// <summary>
+/// Provider that listens to the APRS stream of the OGN servers and publishes messages to the system.
+/// </summary>
+public class StreamProvider : IStreamProvider
 {
     /// <summary>
-    /// Provider that listens to the APRS stream of the OGN servers and publishes messages to the system.
+    /// Observable representing the data stream from the OGN servers
     /// </summary>
-    public class StreamProvider : IStreamProvider
+    public IObservable<string> Stream { get; }
+
+    private readonly AprsConfig _aprsConfig;
+
+    public StreamProvider(
+        AprsConfig aprsConfig
+    )
     {
-        /// <summary>
-        /// Observable representing the data stream from the OGN servers
-        /// </summary>
-        public IObservable<string> Stream { get; }
+        _aprsConfig = aprsConfig;
+        Stream = CreateStream();
+    }
 
-        private readonly AprsConfig _aprsConfig;
+    private IObservable<string> CreateStream()
+    {
+        _aprsConfig.AprsHost.EnsureNotEmpty();
+        if (_aprsConfig.AprsPort == 0)
+        {
+            throw new Exception("APRS port not set!");
+        }
 
-        public StreamProvider(
-            AprsConfig aprsConfig
+        if (
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            _aprsConfig.FilterPosition.Latitude == 0
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            || _aprsConfig.FilterPosition.Longitude == 0
+            || _aprsConfig.FilterRadius == 0
         )
         {
-            _aprsConfig = aprsConfig;
-            Stream = CreateStream();
+            throw new Exception("Filters not set properly!");
         }
 
-        private IObservable<string> CreateStream()
-        {
-            _aprsConfig.AprsHost.EnsureNotEmpty();
-            if (_aprsConfig.AprsPort == 0)
+        var latitude = _aprsConfig.FilterPosition.Latitude.ToString(CultureInfo.InvariantCulture);
+        var longitude = _aprsConfig.FilterPosition.Longitude.ToString(CultureInfo.InvariantCulture);
+        var radius = _aprsConfig.FilterRadius;
+        var loginText =
+            $"user {_aprsConfig.AprsUser} pass {_aprsConfig.AprsPassword} vers ogn_gateway 1.1 filter r/{latitude}/{longitude}/{radius}";
+
+        return Observable.Create(async (IObserver<string> observer) =>
             {
-                throw new Exception("APRS port not set!");
-            }
+                var client = new TcpClient();
+                await client.ConnectAsync(_aprsConfig.AprsHost, _aprsConfig.AprsPort);
 
-            if (
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                _aprsConfig.FilterPosition.Latitude == 0
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                || _aprsConfig.FilterPosition.Longitude == 0
-                || _aprsConfig.FilterRadius == 0
-            )
-            {
-                throw new Exception("Filters not set properly!");
-            }
+                var streamReader = new StreamReader(client.GetStream());
+                var streamWriter = new StreamWriter(client.GetStream()) { AutoFlush = true };
 
-            var latitude = _aprsConfig.FilterPosition.Latitude.ToString(CultureInfo.InvariantCulture);
-            var longitude = _aprsConfig.FilterPosition.Longitude.ToString(CultureInfo.InvariantCulture);
-            var radius = _aprsConfig.FilterRadius;
-            var loginText =
-                $"user {_aprsConfig.AprsUser} pass {_aprsConfig.AprsPassword} vers ogn_gateway 1.1 filter r/{latitude}/{longitude}/{radius}";
+                // Login on the APRS server
+                await streamWriter.WriteLineAsync(loginText);
 
-            return Observable.Create(async (IObserver<string> observer) =>
+                // Make sure to send regular messages to keep the connection alive
+                Observable.Interval(TimeSpan.FromMinutes(10))
+                    .Subscribe(async _ => await streamWriter.WriteLineAsync("# keep alive"));
+
+                while (true)
                 {
-                    var client = new TcpClient();
-                    await client.ConnectAsync(_aprsConfig.AprsHost, _aprsConfig.AprsPort);
-
-                    var streamReader = new StreamReader(client.GetStream());
-                    var streamWriter = new StreamWriter(client.GetStream()) { AutoFlush = true };
-
-                    // Login on the APRS server
-                    await streamWriter.WriteLineAsync(loginText);
-
-                    // Make sure to send regular messages to keep the connection alive
-                    Observable.Interval(TimeSpan.FromMinutes(10))
-                        .Subscribe(async _ => await streamWriter.WriteLineAsync("# keep alive"));
-
-                    while (true)
+                    var line = await streamReader.ReadLineAsync();
+                    if (line == null)
                     {
-                        var line = await streamReader.ReadLineAsync();
-                        if (line == null)
-                        {
-                            // Stream ended. Close the loop.
-                            observer.OnCompleted();
-                            break;
-                        }
-
-                        if (line.StartsWith("#") || line.Contains("TCPIP*"))
-                        {
-                            // Ignore server messages
-                            continue;
-                        }
-
-                        observer.OnNext(line);
+                        // Stream ended. Close the loop.
+                        observer.OnCompleted();
+                        break;
                     }
-                })
-                .Publish() // Every subscriber should subscribe to the _same_ Observable (see "hot Observable")
-                .AutoConnect(); // Hot Observables must be connected. We're doing that on the first subscription.
-        }
+
+                    if (line.StartsWith("#") || line.Contains("TCPIP*"))
+                    {
+                        // Ignore server messages
+                        continue;
+                    }
+
+                    observer.OnNext(line);
+                }
+            })
+            .Publish() // Every subscriber should subscribe to the _same_ Observable (see "hot Observable")
+            .AutoConnect(); // Hot Observables must be connected. We're doing that on the first subscription.
     }
 }

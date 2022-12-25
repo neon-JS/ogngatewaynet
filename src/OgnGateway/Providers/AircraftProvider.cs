@@ -6,98 +6,97 @@ using System.Threading.Tasks;
 using OgnGateway.Dtos;
 using OgnGateway.Extensions.Primitives;
 
-namespace OgnGateway.Providers
+namespace OgnGateway.Providers;
+
+/// <summary>
+/// Provider for all OGN aircraft coming from the DDB
+/// </summary>
+public class AircraftProvider : IAircraftProvider
 {
+    private const string _VALUE_YES = "Y";
+    private const string _FIELD_ENCLOSURE = "'";
+    private const char _FIELD_SEPARATOR = ',';
+    private const char _IDENTIFIER_COMMENT = '#';
+    private const char _LINE_BREAK = '\n';
+
+    private const int _INDEX_AIRCRAFT_ID = 1;
+    private const int _INDEX_TYPE = 2;
+    private const int _INDEX_REGISTRATION = 3;
+    private const int _INDEX_CALL_SIGN = 4;
+    private const int _INDEX_TRACKED = 5;
+    private const int _INDEX_IDENTIFIED = 6;
+
     /// <summary>
-    /// Provider for all OGN aircraft coming from the DDB
+    /// Cached list containing all parsed aircraft
     /// </summary>
-    public class AircraftProvider : IAircraftProvider
+    private readonly Dictionary<string, Aircraft> _aircraftList;
+
+    private readonly AprsConfig _aprsConfig;
+
+    public AircraftProvider(
+        AprsConfig aprsConfig
+    )
     {
-        private const string ValueYes = "Y";
-        private const string FieldEnclosure = "'";
-        private const char FieldSeparator = ',';
-        private const char IdentifierComment = '#';
-        private const char LineBreak = '\n';
+        _aircraftList = new Dictionary<string, Aircraft>();
+        _aprsConfig = aprsConfig;
+    }
 
-        private const int IndexAircraftId = 1;
-        private const int IndexType = 2;
-        private const int IndexRegistration = 3;
-        private const int IndexCallSign = 4;
-        private const int IndexTracked = 5;
-        private const int IndexIdentified = 6;
+    /// <summary>
+    /// Loads aircraft by given ID.
+    /// If aircraft cannot be found, an empty Aircraft will be returned.
+    /// </summary>
+    /// <param name="aircraftId">OGN ID of the aircraft</param>
+    /// <returns>Representation of an Aircraft</returns>
+    public Aircraft Load(string aircraftId)
+    {
+        aircraftId.EnsureNotEmpty();
 
-        /// <summary>
-        /// Cached list containing all parsed aircraft
-        /// </summary>
-        private readonly Dictionary<string, Aircraft> _aircraftList;
+        return _aircraftList.TryGetValue(aircraftId, out var value)
+            ? value
+            : new Aircraft(aircraftId);
+    }
 
-        private readonly AprsConfig _aprsConfig;
+    /// <summary>
+    /// Initializes the provider and downloads / parses the data.
+    /// Must be called before trying to Load any aircraft
+    /// </summary>
+    /// <returns>Task indicating whether initialization is done</returns>
+    /// <seealso href="https://github.com/glidernet/ogn-ddb/blob/master/README.md"/>
+    /// <exception cref="Exception">On invalid config or HTTP-errors</exception>
+    public async Task InitializeAsync()
+    {
+        _aprsConfig.DdbAircraftListUrl.EnsureNotEmpty();
 
-        public AircraftProvider(
-            AprsConfig aprsConfig
-        )
+        var client = new HttpClient();
+        var response = await client.GetAsync(_aprsConfig.DdbAircraftListUrl);
+
+        if (!response.IsSuccessStatusCode)
         {
-            _aircraftList = new Dictionary<string, Aircraft>();
-            _aprsConfig = aprsConfig;
+            throw new Exception("Request to aircraft database failed!");
         }
 
-        /// <summary>
-        /// Loads aircraft by given ID.
-        /// If aircraft cannot be found, an empty Aircraft will be returned.
-        /// </summary>
-        /// <param name="aircraftId">OGN ID of the aircraft</param>
-        /// <returns>Representation of an Aircraft</returns>
-        public Aircraft Load(string aircraftId)
+        var content = await response.Content.ReadAsStringAsync();
+
+        var insertResult = content
+            .Replace(_FIELD_ENCLOSURE, string.Empty)
+            .Split(_LINE_BREAK)
+            .Where(line => !line.StartsWith(_IDENTIFIER_COMMENT))
+            .Select(line => line.Split(_FIELD_SEPARATOR))
+            .Select(values => values.Select(v => v.Trim()).ToList())
+            .Where(values => values.Count >= 7)
+            .Where(values => !string.IsNullOrWhiteSpace(values[_INDEX_AIRCRAFT_ID]))
+            .Select(values => new Aircraft(
+                values[_INDEX_AIRCRAFT_ID],
+                values[_INDEX_CALL_SIGN],
+                values[_INDEX_REGISTRATION],
+                values[_INDEX_TYPE],
+                values[_INDEX_TRACKED].Equals(_VALUE_YES) && values[_INDEX_IDENTIFIED].Equals(_VALUE_YES)
+            ))
+            .All(aircraft => _aircraftList.TryAdd(aircraft.Id, aircraft));
+
+        if (!insertResult)
         {
-            aircraftId.EnsureNotEmpty();
-
-            return _aircraftList.ContainsKey(aircraftId)
-                ? _aircraftList[aircraftId]
-                : new Aircraft(aircraftId);
-        }
-
-        /// <summary>
-        /// Initializes the provider and downloads / parses the data.
-        /// Must be called before trying to Load any aircraft
-        /// </summary>
-        /// <returns>Task indicating whether initialization is done</returns>
-        /// <seealso href="https://github.com/glidernet/ogn-ddb/blob/master/README.md"/>
-        /// <exception cref="Exception">On invalid config or HTTP-errors</exception>
-        public async Task InitializeAsync()
-        {
-            _aprsConfig.DdbAircraftListUrl.EnsureNotEmpty();
-
-            var client = new HttpClient();
-            var response = await client.GetAsync(_aprsConfig.DdbAircraftListUrl);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception("Request to aircraft database failed!");
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            var insertResult = content
-                .Replace(FieldEnclosure, string.Empty)
-                .Split(LineBreak)
-                .Where(line => !line.StartsWith(IdentifierComment))
-                .Select(line => line.Split(FieldSeparator))
-                .Select(values => values.Select(v => v.Trim()).ToList())
-                .Where(values => values.Count >= 7)
-                .Where(values => !string.IsNullOrWhiteSpace(values[IndexAircraftId]))
-                .Select(values => new Aircraft(
-                    values[IndexAircraftId],
-                    values[IndexCallSign],
-                    values[IndexRegistration],
-                    values[IndexType],
-                    values[IndexTracked].Equals(ValueYes) && values[IndexIdentified].Equals(ValueYes)
-                ))
-                .All(aircraft => _aircraftList.TryAdd(aircraft.Id, aircraft));
-
-            if (!insertResult)
-            {
-                throw new Exception("Error during insertion of aircraft.");
-            }
+            throw new Exception("Error during insertion of aircraft.");
         }
     }
 }

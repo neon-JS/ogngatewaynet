@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace WebsocketGateway.Services
-{
-    public interface IWebsocketService
-    {
-        IObservable<byte[]> Messages { get; }
+namespace WebsocketGateway.Services;
 
-        void Notify(byte[] message);
-        void Notify(object serializable);
-    }
+public interface IWebsocketService
+{
+    IObservable<byte[]> Messages { get; }
+
+    void Notify(byte[] message);
+    void Notify(object serializable);
 }

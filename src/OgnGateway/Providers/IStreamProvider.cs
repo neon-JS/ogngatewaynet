@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace OgnGateway.Providers
+namespace OgnGateway.Providers;
+
+public interface IStreamProvider
 {
-    public interface IStreamProvider
-    {
-        IObservable<string> Stream { get; }
-    }
+    IObservable<string> Stream { get; }
 }
