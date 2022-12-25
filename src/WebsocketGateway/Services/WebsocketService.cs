@@ -21,15 +21,10 @@ public class WebsocketService : IWebsocketService
         };
     }
 
-    public void Notify(byte[] message)
-    {
-        _messages.OnNext(message);
-    }
-
     public void Notify(object serializable)
     {
         var json = JsonSerializer.Serialize(serializable, _jsonSerializerOptions);
-        byte[] message = new UTF8Encoding().GetBytes(json);
-        Notify(message);
+        var message = new UTF8Encoding().GetBytes(json);
+        _messages.OnNext(message);
     }
 }

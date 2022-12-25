@@ -25,6 +25,6 @@ public static class GatewayConfigurationExtensions
     public static int GetIntervalSeconds(this GatewayConfiguration configuration)
     {
         return configuration.IntervalSeconds
-               ?? throw new ArgumentNullException(nameof(configuration.IntervalSeconds));
+               ?? throw new NullReferenceException($"{nameof(configuration.IntervalSeconds)} is null");
     }
 }

@@ -65,8 +65,10 @@ public class StreamProvider : IStreamProvider
                 await streamWriter.WriteLineAsync(loginText);
 
                 // Make sure to send regular messages to keep the connection alive
+                async void SendKeepAlive(long _) => await streamWriter.WriteLineAsync("# keep alive");
+
                 Observable.Interval(TimeSpan.FromMinutes(10))
-                    .Subscribe(async _ => await streamWriter.WriteLineAsync("# keep alive"));
+                    .Subscribe(SendKeepAlive);
 
                 while (true)
                 {

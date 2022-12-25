@@ -73,7 +73,7 @@ public class Startup
     {
         var actorSystem = ActorSystem.Create("WebsocketGateway");
 
-        services.AddSingleton<ActorSystem>(actorSystem);
+        services.AddSingleton(actorSystem);
         services.AddSingleton<IActorRefFactory>(actorSystem);
     }
 

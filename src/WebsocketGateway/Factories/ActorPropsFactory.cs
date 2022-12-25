@@ -44,8 +44,18 @@ public class ActorPropsFactory : IActorPropsFactory
     {
         // DO NOT use a Pool of Actors as we have a certain state in this actor which should be kept between the calls.
         return _gatewayConfiguration.HasInterval()
-            ? Props.Create(() => new DelayMessageProcessActor(_actorRefFactory, _gatewayConfiguration, _latestDataProvider))
-            : Props.Create(() => new InstantMessageProcessActor(_actorRefFactory, _gatewayConfiguration, _latestDataProvider));
+            ? Props.Create(() => new DelayMessageProcessActor(
+                    _actorRefFactory,
+                    _gatewayConfiguration,
+                    _latestDataProvider
+                )
+            )
+            : Props.Create(() => new InstantMessageProcessActor(
+                    _actorRefFactory,
+                    _gatewayConfiguration,
+                    _latestDataProvider
+                )
+            );
     }
 
     public Props CreateOgnConvertActorProps()
@@ -56,7 +66,13 @@ public class ActorPropsFactory : IActorPropsFactory
         }
 
         return Props
-            .Create(() => new OgnConvertActor(_actorRefFactory, _aircraftProvider, _streamConverter, _gatewayConfiguration))
+            .Create(() => new OgnConvertActor(
+                    _actorRefFactory,
+                    _aircraftProvider,
+                    _streamConverter,
+                    _gatewayConfiguration
+                )
+            )
             .WithRouter(new SmallestMailboxPool(_gatewayConfiguration.Workers));
     }
 

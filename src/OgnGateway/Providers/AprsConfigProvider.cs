@@ -10,7 +10,7 @@ namespace OgnGateway.Providers;
 /// <summary>
 /// Provides the current configuration from config.json
 /// </summary>
-public class AprsConfigProvider : IAprsConfigProvider
+public class AprsConfigProvider
 {
     private readonly string _configPath;
 

@@ -15,7 +15,8 @@ public class WebsocketController : Controller
 
     public WebsocketController(
         IWebsocketService websocketService
-    ) {
+    )
+    {
         _websocketService = websocketService;
     }
 
@@ -28,7 +29,8 @@ public class WebsocketController : Controller
             return;
         }
 
-        if (await HttpContext.WebSockets.AcceptWebSocketAsync() is not { } websocket) {
+        if (await HttpContext.WebSockets.AcceptWebSocketAsync() is not { } websocket)
+        {
             HttpContext.Response.StatusCode = 500;
             return;
         }
@@ -37,16 +39,30 @@ public class WebsocketController : Controller
             .Interval(TimeSpan.FromSeconds(1))
             .Select(_ => websocket.State);
 
+        async void CloseWebsocketConnection()
+        {
+            if (websocket.State is WebSocketState.CloseReceived or WebSocketState.Open)
+            {
+                await websocket.CloseOutputAsync(
+                    WebSocketCloseStatus.NormalClosure,
+                    null,
+                    CancellationToken.None
+                );
+            }
+        }
+
+        async void SendWebsocketMessage(byte[] message) => await websocket.SendAsync(
+            new ArraySegment<byte>(message),
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None
+        );
+
         await _websocketService.Messages
             .WithLatestFrom(websocketStatusChange)
             .TakeWhile(tuple => tuple.Second == WebSocketState.Open)
             .Select(tuple => tuple.First)
-            .Finally(async () => {
-                if (websocket.State == WebSocketState.CloseReceived || websocket.State == WebSocketState.Open)
-                {
-                    await websocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-                }
-            })
-            .Do(async message => await websocket.SendAsync(message, WebSocketMessageType.Text, true, CancellationToken.None));
+            .Finally(CloseWebsocketConnection)
+            .Do(SendWebsocketMessage);
     }
 }

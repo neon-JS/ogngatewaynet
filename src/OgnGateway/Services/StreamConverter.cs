@@ -8,7 +8,7 @@ namespace OgnGateway.Services;
 /// <summary>
 /// Converter for getting models from stream data messages
 /// </summary>
-public class StreamConverter : IStreamConverter
+public partial class StreamConverter : IStreamConverter
 {
     /// <summary>
     /// Main pattern for getting all needed information from a raw stream-line.
@@ -49,6 +49,9 @@ public class StreamConverter : IStreamConverter
     /// Factor to convert "turns/2min" to "turns/min"
     /// </summary>
     private const float _FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN = 0.5f;
+
+    [GeneratedRegex(_COORDINATE_REPLACE_PATTERN)]
+    private static partial Regex CoordinateReplaceRegex();
 
     /// <summary>
     /// Tries converting a stream-line to FlightData model
@@ -107,13 +110,14 @@ public class StreamConverter : IStreamConverter
     /// <returns></returns>
     private static float ConvertCoordinateValue(GroupCollection collection, int index)
     {
-        /* Latitude and longitude (by APRS-standard) are given as following: ddmm.mmD where d = "degree", m = "minute" and D = "direction".
+        /* Latitude and longitude (by APRS-standard) are given as following: ddmm.mmD where d = "degree",
+         * m = "minute" and D = "direction".
          * Notice that minutes are decimals, so 0.5 minutes equal 0 minutes, 30 secs.
          * We'll separate degrees and minutes, so we can convert it to a "degree"-only value.
          */
         var rawValue = collection[index].Value;
 
-        var numericValue = System.Convert.ToDouble(Regex.Replace(rawValue, _COORDINATE_REPLACE_PATTERN, string.Empty));
+        var numericValue = System.Convert.ToDouble(CoordinateReplaceRegex().Replace(rawValue, string.Empty));
         var orientation = rawValue[^1..];
 
         var degrees = Math.Floor(numericValue / 1_0000); // Separating   "dd" from "ddmmmm"
