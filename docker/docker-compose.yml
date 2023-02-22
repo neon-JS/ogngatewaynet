@@ -23,6 +23,7 @@ services:
       # - AprsConfig:FilterPosition:Longitude=
       # - AprsConfig:FilterRadius=
       - Urls:http://+:5000
+    restart: unless-stopped
   frontend:
     image: nginx:latest
     volumes:
@@ -32,3 +33,4 @@ services:
       - "8080:8080"
     depends_on:
       - gateway
+    restart: unless-stopped
