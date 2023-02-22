@@ -1,7 +1,7 @@
 const { createApp } = Vue;
 
 const API_HOST = `${window.location.origin}/api`;
-const WEBSOCKET_HOST = `ws://${window.location.host}/websocket`;
+const WEBSOCKET_HOST = `wss://${window.location.host}/websocket`;
 
 createApp({
     data() {
