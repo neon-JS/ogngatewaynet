@@ -1,5 +1,4 @@
 # OgnGateway.NET
-![.NET Build status](https://github.com/neon-JS/ogngatewaynet/workflows/.NET/badge.svg)
 
 A simple gateway for OGN-data which feeds websockets.
 This gateway listens to the APRS-servers of the OpenGliderNetwork and parses & passes the received messages to all
@@ -20,20 +19,12 @@ This solution is split into two projects:
 It also contains a very simple _frontend_, which is written with Vue.js and currently in german.
 This _frontend_ connects to the _WebsocketGateway_ and lists the incoming data / creates live notifications.
 
-## How to extend
-- Clone / download this repository.
-- Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
-- Configure _src/WebsocketGateway/appsettings.json_.
-- Extend the solution with your code.
-
 ## How to host
 
 ### Native
 - Clone / download this repository.
-- Install all necessary dependencies (_Reactive_, _Akka_) via _NuGet_.
 - Configure _src/WebsocketGateway/appsettings.json_.
-- Either build the _WebsocketGateway_ project or just run it.
-- Connect to the websocket with your frontend, application etc.
+- `dotnet run`
 
 ### Docker
 - Clone / download this repository.
@@ -77,7 +68,7 @@ Conntects to websocket which sends the clients `FlightDataDto`s regularly or on 
 ```
 
 #### Config
-See _src/WebsocketGateway/appsettings.json for further information.
+See _src/WebsocketGateway/appsettings.json_ for further information.
 ```json
 {
    "maxAgeSeconds": 20,
