@@ -2,7 +2,7 @@ version: '3.8'
 services:
   gateway:
     image: ghcr.io/neon-js/ogngatewaynet:master
-    #build: Uncomment to use self built
+    #build: # Uncomment to use self built
     #  context: ../src
     #  dockerfile: ../docker/Dockerfile
     ports:
