@@ -1,5 +1,3 @@
-using System;
-
 namespace OgnGateway.Extensions.Primitives;
 
 public static class StringExtensions

@@ -1,6 +1,4 @@
-﻿using Akka.Actor;
-
-namespace WebsocketGateway.Factories;
+﻿namespace WebsocketGateway.Factories;
 
 public interface IActorPropsFactory
 {

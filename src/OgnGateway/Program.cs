@@ -1,10 +1,4 @@
-﻿using System;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using OgnGateway.Providers;
-using OgnGateway.Services;
-
-namespace OgnGateway;
+﻿namespace OgnGateway;
 
 // ReSharper disable once ClassNeverInstantiated.Global
 // ReSharper disable once ArrangeTypeModifiers

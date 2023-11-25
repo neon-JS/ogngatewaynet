@@ -1,8 +1,3 @@
-using Akka.Actor;
-using WebsocketGateway.Dtos;
-using WebsocketGateway.Providers;
-using WebsocketGateway.Services;
-
 namespace WebsocketGateway.Actors;
 
 /// <summary>

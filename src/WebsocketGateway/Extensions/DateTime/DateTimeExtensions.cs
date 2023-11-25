@@ -1,5 +1,3 @@
-using System;
-
 namespace WebsocketGateway.Extensions.DateTime;
 
 public static class DateTimeExtensions

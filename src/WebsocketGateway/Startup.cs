@@ -1,30 +1,10 @@
-using System;
-using Akka.Actor;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using OgnGateway.Dtos;
-using OgnGateway.Providers;
-using OgnGateway.Services;
-using WebsocketGateway.Dtos;
-using WebsocketGateway.Factories;
-using WebsocketGateway.Providers;
-using WebsocketGateway.Services;
-
 namespace WebsocketGateway;
 
-public class Startup
+public class Startup(IConfiguration configuration)
 {
-    public Startup(IConfiguration configuration)
-    {
-        Configuration = configuration;
-    }
-
     // ReSharper disable once MemberCanBePrivate.Global
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
-    public IConfiguration Configuration { get; }
+    public IConfiguration Configuration { get; } = configuration;
 
     /// <summary>
     /// Configure our services & providers for DI
@@ -53,20 +33,17 @@ public class Startup
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-            app.UseCors(corsPolicyBuilder => 
+            app.UseCors(corsPolicyBuilder =>
                 corsPolicyBuilder
-                    .WithOrigins("http://localhost:8000")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
+                   .WithOrigins("http://localhost:8000")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
             );
         }
 
         app.UseRouting();
         app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(1) });
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 
     private void ConfigureActorSystem(IServiceCollection services)

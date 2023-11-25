@@ -1,6 +1,3 @@
-using System;
-using WebsocketGateway.Dtos;
-
 namespace WebsocketGateway.Extensions.Dtos;
 
 public static class GatewayConfigurationExtensions

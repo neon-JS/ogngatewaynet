@@ -1,6 +1,3 @@
-using System;
-using OgnGateway.Dtos;
-
 namespace WebsocketGateway.Dtos;
 
 public record FlightDataDto(

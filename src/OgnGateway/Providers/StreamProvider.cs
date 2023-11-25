@@ -1,11 +1,3 @@
-using System;
-using System.Globalization;
-using System.IO;
-using System.Net.Sockets;
-using System.Reactive.Linq;
-using OgnGateway.Dtos;
-using OgnGateway.Extensions.Primitives;
-
 namespace OgnGateway.Providers;
 
 /// <summary>

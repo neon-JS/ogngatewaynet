@@ -1,9 +1,3 @@
-using Akka.Actor;
-using WebsocketGateway.Dtos;
-using WebsocketGateway.Extensions.DateTime;
-using WebsocketGateway.Providers;
-using WebsocketGateway.Services;
-
 namespace WebsocketGateway.Actors;
 
 /// <summary>
@@ -45,7 +39,7 @@ public class InstantMessageProcessActor : ReceiveActor
             {
                 // Immediately inform the PublishActor about this message
                 _actorRefFactory
-                    .ActorSelection($"user/{ActorControlHostedService.PublishActorName}")
+                    .ActorSelection($"user/{ActorControlHostedService._PUBLISH_ACTOR_NAME}")
                     .Tell(message, Self);
             }
         });

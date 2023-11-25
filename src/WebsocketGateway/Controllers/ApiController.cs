@@ -1,32 +1,16 @@
-using Microsoft.AspNetCore.Mvc;
-using OgnGateway.Dtos;
-using WebsocketGateway.Dtos;
-using WebsocketGateway.Providers;
-
 namespace WebsocketGateway.Controllers;
 
 [Route("api")]
-public class ApiController : Controller
+public class ApiController(
+    ILatestDataProvider latestDataProvider,
+    GatewayConfiguration gatewayConfiguration,
+    AprsConfig aprsConfig
+) : Controller
 {
-    private readonly ILatestDataProvider _latestDataProvider;
-    private readonly GatewayConfiguration _gatewayConfiguration;
-    private readonly AprsConfig _aprsConfig;
-
-    public ApiController(
-        ILatestDataProvider latestDataProvider,
-        GatewayConfiguration gatewayConfiguration,
-        AprsConfig aprsConfig
-    )
-    {
-        _latestDataProvider = latestDataProvider;
-        _gatewayConfiguration = gatewayConfiguration;
-        _aprsConfig = aprsConfig;
-    }
-
     [HttpGet("current")]
     public IActionResult GetCurrentlyActiveAsync()
     {
-        return Json(_latestDataProvider.GetLatestData());
+        return Json(latestDataProvider.GetLatestData());
     }
 
     [HttpGet("config")]
@@ -34,11 +18,11 @@ public class ApiController : Controller
     {
         return Json(new
         {
-            _gatewayConfiguration.MaxAgeSeconds,
-            _gatewayConfiguration.EventsOnly,
-            _gatewayConfiguration.IntervalSeconds,
-            _aprsConfig.FilterPosition,
-            _aprsConfig.FilterRadius
+            gatewayConfiguration.MaxAgeSeconds,
+            gatewayConfiguration.EventsOnly,
+            gatewayConfiguration.IntervalSeconds,
+            aprsConfig.FilterPosition,
+            aprsConfig.FilterRadius
         });
     }
 }

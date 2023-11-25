@@ -1,12 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using Akka.Actor;
-using Akka.Util.Internal;
-using WebsocketGateway.Dtos;
-using WebsocketGateway.Extensions.DateTime;
-using WebsocketGateway.Providers;
-using WebsocketGateway.Services;
-
 namespace WebsocketGateway.Actors;
 
 /// <summary>
@@ -63,7 +54,7 @@ public class DelayMessageProcessActor : ReceiveActor
             {
                 // Immediately inform the PublishActor about this message as it's an event
                 _actorRefFactory
-                    .ActorSelection($"user/{ActorControlHostedService.PublishActorName}")
+                    .ActorSelection($"user/{ActorControlHostedService._PUBLISH_ACTOR_NAME}")
                     .Tell(message, Self);
             }
             else if (!_gatewayConfiguration.EventsOnly)
@@ -82,7 +73,7 @@ public class DelayMessageProcessActor : ReceiveActor
                 .Select(kv => kv.Value)
                 .ForEach(entry =>
                     _actorRefFactory
-                        .ActorSelection($"user/{ActorControlHostedService.PublishActorName}")
+                        .ActorSelection($"user/{ActorControlHostedService._PUBLISH_ACTOR_NAME}")
                         .Tell(entry, Self)
                 );
         });

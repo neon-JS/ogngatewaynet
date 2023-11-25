@@ -1,9 +1,3 @@
-using Akka.Actor;
-using OgnGateway.Providers;
-using OgnGateway.Services;
-using WebsocketGateway.Dtos;
-using WebsocketGateway.Services;
-
 namespace WebsocketGateway.Actors;
 
 /// <summary>
@@ -54,7 +48,7 @@ public class OgnConvertActor : ReceiveActor
 
             // Pass the convertedMessage to the IMessageProcessActor so it can be further processed.
             actorSystem
-                .ActorSelection($"user/{ActorControlHostedService.MessageProcessActorName}")
+                .ActorSelection($"user/{ActorControlHostedService._MESSAGE_PROCESS_ACTOR_NAME}")
                 .Tell(flightDataDto, Self);
         });
     }

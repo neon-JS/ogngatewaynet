@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WebsocketGateway.Services;
+﻿namespace WebsocketGateway.Services;
 
 public interface IWebsocketService
 {

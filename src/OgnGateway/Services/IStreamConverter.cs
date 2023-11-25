@@ -1,6 +1,4 @@
-﻿using OgnGateway.Dtos;
-
-namespace OgnGateway.Services;
+﻿namespace OgnGateway.Services;
 
 public interface IStreamConverter
 {

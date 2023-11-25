@@ -1,5 +1,3 @@
-using OgnGateway.Dtos;
-
 namespace WebsocketGateway.Dtos;
 
 public record AircraftDto(string Id, string? CallSign, string? Registration, string? Type)

@@ -1,25 +1,8 @@
-﻿using System;
-using System.Net.WebSockets;
-using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using WebsocketGateway.Services;
-
-namespace WebsocketGateway.Controllers;
+﻿namespace WebsocketGateway.Controllers;
 
 [Route("websocket")]
-public class WebsocketController : Controller
+public class WebsocketController(IWebsocketService websocketService) : Controller
 {
-    private readonly IWebsocketService _websocketService;
-
-    public WebsocketController(
-        IWebsocketService websocketService
-    )
-    {
-        _websocketService = websocketService;
-    }
-
     [HttpGet]
     public async Task ConnectAsync()
     {
@@ -36,8 +19,23 @@ public class WebsocketController : Controller
         }
 
         var websocketStatusChange = Observable
-            .Interval(TimeSpan.FromSeconds(1))
-            .Select(_ => websocket.State);
+           .Interval(TimeSpan.FromSeconds(1))
+           .Select(_ => websocket.State);
+
+        await websocketService.Messages
+           .WithLatestFrom(websocketStatusChange)
+           .TakeWhile(tuple => tuple.Second == WebSocketState.Open)
+           .Select(tuple => tuple.First)
+           .Finally(CloseWebsocketConnection)
+           .Do(SendWebsocketMessage);
+        return;
+
+        async void SendWebsocketMessage(byte[] message) => await websocket.SendAsync(
+            new ArraySegment<byte>(message),
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None
+        );
 
         async void CloseWebsocketConnection()
         {
@@ -50,19 +48,5 @@ public class WebsocketController : Controller
                 );
             }
         }
-
-        async void SendWebsocketMessage(byte[] message) => await websocket.SendAsync(
-            new ArraySegment<byte>(message),
-            WebSocketMessageType.Text,
-            true,
-            CancellationToken.None
-        );
-
-        await _websocketService.Messages
-            .WithLatestFrom(websocketStatusChange)
-            .TakeWhile(tuple => tuple.Second == WebSocketState.Open)
-            .Select(tuple => tuple.First)
-            .Finally(CloseWebsocketConnection)
-            .Do(SendWebsocketMessage);
     }
 }

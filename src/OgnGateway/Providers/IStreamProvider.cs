@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace OgnGateway.Providers;
+﻿namespace OgnGateway.Providers;
 
 public interface IStreamProvider
 {

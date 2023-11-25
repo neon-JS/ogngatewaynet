@@ -1,25 +1,14 @@
-using System.Text.Json;
-using System.Text;
-using System.Reactive.Subjects;
-using System;
-
 namespace WebsocketGateway.Services;
 
 public class WebsocketService : IWebsocketService
 {
     public IObservable<byte[]> Messages => _messages;
-    private readonly Subject<byte[]> _messages;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
-
-    public WebsocketService()
+    private readonly Subject<byte[]> _messages = new();
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
-        _messages = new Subject<byte[]>();
-        _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false,
-        };
-    }
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
 
     public void Notify(object serializable)
     {

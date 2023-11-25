@@ -1,17 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using OgnGateway.Dtos;
-using OgnGateway.Extensions.Primitives;
-
 namespace OgnGateway.Providers;
 
 /// <summary>
 /// Provider for all OGN aircraft coming from the DDB
 /// </summary>
-public class AircraftProvider : IAircraftProvider
+public class AircraftProvider(AprsConfig aprsConfig) : IAircraftProvider
 {
     private const string _VALUE_YES = "Y";
     private const string _FIELD_ENCLOSURE = "'";
@@ -29,17 +21,7 @@ public class AircraftProvider : IAircraftProvider
     /// <summary>
     /// Cached list containing all parsed aircraft
     /// </summary>
-    private readonly Dictionary<string, Aircraft> _aircraftList;
-
-    private readonly AprsConfig _aprsConfig;
-
-    public AircraftProvider(
-        AprsConfig aprsConfig
-    )
-    {
-        _aircraftList = new Dictionary<string, Aircraft>();
-        _aprsConfig = aprsConfig;
-    }
+    private readonly Dictionary<string, Aircraft> _aircraftList = new();
 
     /// <summary>
     /// Loads aircraft by given ID.
@@ -65,10 +47,10 @@ public class AircraftProvider : IAircraftProvider
     /// <exception cref="Exception">On invalid config or HTTP-errors</exception>
     public async Task InitializeAsync()
     {
-        _aprsConfig.DdbAircraftListUrl.EnsureNotEmpty();
+        aprsConfig.DdbAircraftListUrl.EnsureNotEmpty();
 
         var client = new HttpClient();
-        var response = await client.GetAsync(_aprsConfig.DdbAircraftListUrl);
+        var response = await client.GetAsync(aprsConfig.DdbAircraftListUrl);
 
         if (!response.IsSuccessStatusCode)
         {

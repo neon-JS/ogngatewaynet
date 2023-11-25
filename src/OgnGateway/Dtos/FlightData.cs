@@ -1,5 +1,3 @@
-using System;
-
 namespace OgnGateway.Dtos;
 
 public record FlightData(

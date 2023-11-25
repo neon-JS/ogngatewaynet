@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using WebsocketGateway.Dtos;
-
-namespace WebsocketGateway.Providers;
+﻿namespace WebsocketGateway.Providers;
 
 public interface ILatestDataProvider
 {
