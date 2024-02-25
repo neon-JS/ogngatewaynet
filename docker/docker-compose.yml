@@ -1,12 +1,10 @@
 version: '3.8'
 services:
   gateway:
-    image: ghcr.io/neon-js/ogngatewaynet:master
-    #build: # Uncomment to use self built
+    image: ghcr.io/neon-js/ogngatewaynet:main
+    # build: # Uncomment to use self built
     #  context: ../src
     #  dockerfile: ../docker/Dockerfile
-    ports:
-      - "5000:5000"
     environment:
       # - GatewayOptions:EventsOnly=
       # - GatewayOptions:MinimalAltitude=
@@ -22,7 +20,6 @@ services:
       # - AprsConfig:FilterPosition:Latitude=
       # - AprsConfig:FilterPosition:Longitude=
       # - AprsConfig:FilterRadius=
-      - Urls:http://+:5000
     restart: unless-stopped
   frontend:
     image: nginx:latest
