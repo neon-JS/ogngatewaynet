@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Akka" Version="1.5.16" />
+      <PackageReference Include="Akka" Version="1.5.17" />
     </ItemGroup>
 
     <ItemGroup>
