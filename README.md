@@ -1,4 +1,10 @@
-# OgnGateway.NET
+# ⚠️ Status
+This project is being archived because it was superseded by [neon-JS/above_me](https://github.com/neon-JS/above_me).
+Docker images are not deleted for compatibility reasons. As this means that neither dependency nor security updates
+will be performed, it is strongly advised not to continue using OgnGateway.NET. 
+Free to fork it & continue development! 
+
+## OgnGateway.NET
 
 A simple gateway for OGN-data which feeds websockets.
 This gateway listens to the APRS-servers of the OpenGliderNetwork and parses & passes the received messages to all
